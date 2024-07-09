@@ -80,20 +80,20 @@ class GavelisteApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Gaveliste'),
+      home: const LandingPage(title: 'Gaveliste'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class LandingPage extends StatefulWidget {
+  const LandingPage({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<LandingPage> createState() => _LandingPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _LandingPageState extends State<LandingPage> {
   bool? _signedIn = false;
 
   @override
