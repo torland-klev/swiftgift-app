@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gaveliste_app/api_client.dart';
 import 'package:gaveliste_app/google_login.dart';
 import 'package:gaveliste_app/screens/home.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -39,6 +40,8 @@ class GavelisteApp extends StatelessWidget {
     );
   }
 }
+
+ApiClient apiClient = ApiClient();
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key, required this.title});
@@ -98,7 +101,8 @@ class _LandingPageState extends State<LandingPage> {
                                   BorderRadius.all(Radius.circular(10))),
                           Buttons.google,
                           onPressed: () {
-                            handleSignIn(_googleSignIn, (bool? signedIn) {
+                            handleSignIn(_googleSignIn, apiClient,
+                                (bool? signedIn) {
                               setState(() {
                                 _signedIn = signedIn;
                               });

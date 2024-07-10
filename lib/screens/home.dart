@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'group.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -23,7 +25,7 @@ class HomeScreen extends StatelessWidget {
                             padding: EdgeInsets.all(30),
                             child: Text(
                                 "Alle ønskene? Kanskje du kan velge mellom dine, legg til ny, og se alle i grupper du er med i?"))),
-                    Center(child: Text("Alle gruppene?")),
+                    Center(child: GroupScreen()),
                     Center(child: Text("Noe profil-greier?")),
                   ],
                 ))));
