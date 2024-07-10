@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gaveliste_app/google_login.dart';
@@ -47,30 +48,14 @@ class LandingPage extends StatefulWidget {
   State<LandingPage> createState() => _LandingPageState();
 }
 
-class _LandingPageState extends State<LandingPage>
-    with SingleTickerProviderStateMixin {
+class _LandingPageState extends State<LandingPage> {
   bool? _signedIn = false;
-  late AnimationController _animationController;
-
-  @override
-  initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _googleSignIn.signOut().then((GoogleSignInAccount? account) {
-      setState(() {
-        _signedIn = false;
-      });
-    });
-  }
 
   @override
   void dispose() {
-    _googleSignIn.signOut();
-    _animationController.dispose();
+    if (kDebugMode) {
+      _googleSignIn.signOut();
+    }
     super.dispose();
   }
 
@@ -89,28 +74,13 @@ class _LandingPageState extends State<LandingPage>
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(
-                  100 * (_animationController.value - 0.5),
-                  100 * (_animationController.value - 0.5),
-                ),
-                child: Transform.scale(
-                  scale: 1.25,
-                  child: child,
-                ),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                image: const DecorationImage(
-                  image: AssetImage('assets/gift-background.png'),
-                  fit: BoxFit.none,
-                  repeat: ImageRepeat.repeat,
-                ),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              image: const DecorationImage(
+                image: AssetImage('assets/gift-background.png'),
+                fit: BoxFit.none,
+                repeat: ImageRepeat.repeat,
               ),
             ),
           ),
