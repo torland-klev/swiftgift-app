@@ -23,6 +23,14 @@ Future<void> main() async {
 
 GoogleSignIn _googleSignIn = GoogleSignIn(scopes: scopes);
 
+ThemeData themeData = ThemeData(
+  cardColor: const Color.fromRGBO(120, 170, 255, 100),
+  colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.deepPurple,
+      surface: const Color.fromRGBO(74, 122, 247, 100)),
+  useMaterial3: true,
+);
+
 class GavelisteApp extends StatelessWidget {
   const GavelisteApp({super.key});
 
@@ -30,12 +38,7 @@ class GavelisteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Gaveliste',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            surface: const Color.fromRGBO(74, 122, 247, 100)),
-        useMaterial3: true,
-      ),
+      theme: themeData,
       home: const LandingPage(title: 'Gaveliste'),
     );
   }
