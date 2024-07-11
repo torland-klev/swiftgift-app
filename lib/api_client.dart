@@ -86,7 +86,7 @@ class ApiClient {
   Future<String> getGroupInviteLink(String groupId) async {
     Uri uri = Uri.parse("$_baseUrl/groups/$groupId/invite");
     Response res = await http.post(uri, headers: _headers);
-    if (res.statusCode <= 201) {
+    if (res.statusCode > 201) {
       throw const HttpException("Unable to create invitation link");
     }
     return res.body;

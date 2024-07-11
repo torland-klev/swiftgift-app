@@ -1,11 +1,25 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gaveliste_app/util.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/group.dart';
+import '../../main.dart';
 
 class GroupDetailsScreen extends StatelessWidget {
   final Group group;
 
   const GroupDetailsScreen({required this.group, super.key});
+
+  void _invite() async {
+    String url = await apiClient.getGroupInviteLink(group.id);
+    if (kDebugMode) {
+      print("Invite URL: $url");
+    }
+    Share.share(
+        'Vil du bli med i gavelista ${group.name}? Følg linken her:\n\n$url',
+        subject: "Gaveliste Invitasjon");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +55,9 @@ class GroupDetailsScreen extends StatelessWidget {
                 ]),
                 const Spacer(),
                 Chip(
-                  shape: StadiumBorder(side: BorderSide()),
+                  shape: const StadiumBorder(side: BorderSide()),
                   label: Text(
-                    group.visibility.toString().split('.').last,
+                    group.visibility.toString().split('.').last.toCapitalized(),
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -77,6 +91,11 @@ class GroupDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _invite(),
+        tooltip: 'Invite to group',
+        child: const Icon(Icons.person_add),
       ),
     );
   }
