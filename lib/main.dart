@@ -21,7 +21,16 @@ Future<void> main() async {
   runApp(const GavelisteApp());
 }
 
-GoogleSignIn _googleSignIn = GoogleSignIn(scopes: scopes);
+GoogleSignIn _initialGoogleSignIn() {
+  if (kIsWeb) {
+    return GoogleSignIn(
+        scopes: scopes, clientId: dotenv.env['SERVER_CLIENT_ID']);
+  } else {
+    return GoogleSignIn(scopes: scopes);
+  }
+}
+
+GoogleSignIn _googleSignIn = _initialGoogleSignIn();
 
 ThemeData themeData = ThemeData(
   cardColor: const Color.fromRGBO(120, 170, 255, 100),

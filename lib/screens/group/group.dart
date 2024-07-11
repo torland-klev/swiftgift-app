@@ -82,10 +82,14 @@ class GroupDetailsScreen extends StatelessWidget {
                 itemCount: group.members.length,
                 itemBuilder: (context, index) {
                   final member = group.members[index];
-                  return ListTile(
-                    title: Text('${member.firstName} ${member.lastName}'),
-                    subtitle: Text(member.email),
-                  );
+                  return member.email != null
+                      ? ListTile(
+                          title: Text('${member.firstName} ${member.lastName}'),
+                          subtitle: Text(member.email!),
+                        )
+                      : ListTile(
+                          title:
+                              Text('${member.firstName} ${member.lastName}'));
                 },
               ),
             ),

@@ -1,66 +1,90 @@
-enum Occasion {
-  birthday,
-  christmas,
-  wedding,
-  graduation,
-  none,
-}
+import 'package:flutter/material.dart';
+import 'package:gaveliste_app/main.dart';
+import 'package:gaveliste_app/util.dart';
 
-enum Status {
-  open,
-  selected,
-  fulfilled,
-  deleted,
-}
+import '../data/wish.dart';
 
-enum WishVisibility {
-  private,
-  public,
-  group,
-}
+class _WishCard extends StatelessWidget {
+  final Wish wish;
 
-// User class using enums with lowercase values
-class Wish {
-  String id;
-  String name;
-  Occasion occasion;
-  Status status;
-  WishVisibility visibility;
+  const _WishCard({required this.wish});
 
-  Wish({
-    required this.id,
-    required this.name,
-    required this.occasion,
-    required this.status,
-    required this.visibility,
-  });
-
-  factory Wish.fromJson(Map<String, dynamic> json) {
-    return Wish(
-      id: json['id'],
-      name: json['name'],
-      occasion: Occasion.values.firstWhere(
-        (e) => e.name == json['occasion'].toLowerCase(),
-        orElse: () => Occasion.none,
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
       ),
-      status: Status.values.firstWhere(
-        (e) => e.name == json['status'].toLowerCase(),
-        orElse: () => Status.open,
-      ),
-      visibility: WishVisibility.values.firstWhere(
-        (e) => e.name == json['visibility'].toLowerCase(),
-        orElse: () => WishVisibility.private,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (wish.imageUrl != null)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Image.network(
+                wish.imageUrl!,
+                width: 150,
+                height: 150,
+              ),
+            ),
+          if (wish.description != null)
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Text(
+                wish.description!.toCapitalized(),
+                style: const TextStyle(
+                  fontSize: 20,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'occasion': occasion.name,
-      'status': status.name,
-      'visibility': visibility.name,
-    };
+class WishesScreen extends StatefulWidget {
+  const WishesScreen({super.key});
+
+  @override
+  State<WishesScreen> createState() => _WishesScreenState();
+}
+
+class _WishesScreenState extends State<WishesScreen> {
+  final Future<List<Wish>> _wishes = apiClient.wishes();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+        child: FutureBuilder<List<Wish>>(
+            future: _wishes,
+            builder:
+                (BuildContext context, AsyncSnapshot<List<Wish>> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return const Text('Could not retrieve wishes');
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Text('No wishes found');
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView(
+                    children: snapshot.data!
+                        .asMap()
+                        .entries
+                        .where((wish) => wish.value.status == Status.open)
+                        .map(
+                          (entry) => _WishCard(
+                            wish: entry.value,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                );
+              }
+            }));
   }
 }

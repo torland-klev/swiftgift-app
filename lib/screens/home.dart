@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gaveliste_app/main.dart';
+import 'package:gaveliste_app/screens/wish.dart';
 
 import 'group/groups.dart';
 
@@ -22,11 +23,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 body: TabBarView(
                   children: [
-                    Center(
-                        child: Padding(
-                            padding: EdgeInsets.all(30),
-                            child: Text(
-                                "Alle ønskene? Kanskje du kan velge mellom dine, legg til ny, og se alle i grupper du er med i?"))),
+                    Center(child: WishesScreen()),
                     Center(child: AllGroupsScreen()),
                     Center(child: Text("Noe profil-greier?")),
                   ],

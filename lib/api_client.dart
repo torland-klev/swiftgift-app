@@ -4,13 +4,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gaveliste_app/google_login.dart';
-import 'package:gaveliste_app/screens/wish.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
 import 'data/group.dart';
 import 'data/user.dart';
+import 'data/wish.dart';
 
 typedef FromJson<T> = dynamic Function(Map<String, dynamic> json);
 
@@ -60,28 +60,39 @@ class ApiClient {
     return res;
   }
 
-  Future<List<T>> fetch<T>(String endpoint, FromJson<T> fromJson) async {
+  Future<List<T>> _fetch<T>(String endpoint, FromJson<T> fromJson) async {
     Uri uri = Uri.parse("$_baseUrl/$endpoint");
     Response res = await http.get(uri, headers: _headers);
     if (res.statusCode != 200) {
       throw const HttpException("Unable to fetch");
     }
-    Iterable l = json.decode(res.body);
-    return Future.wait(l.map((model) => _fromJsonHandler(fromJson, model)));
+    var content = json.decode(res.body);
+    if (content is Iterable) {
+      return Future.wait(
+          content.map((item) => _fromJsonHandler(fromJson, item)));
+    } else {
+      return [await _fromJsonHandler(fromJson, content)];
+    }
   }
 
   Future<List<User>> groupMembers(String groupId) async =>
-      fetch<User>("groups/$groupId/members", User.fromJson);
+      _fetch<User>("groups/$groupId/members", User.fromJson);
 
-  Future<List<Group>> groups() async {
-    return fetch<Group>("groups", (groupJson) async {
-      String id = groupJson['id'];
-      List<User> members = await groupMembers(id);
-      return Group.fromJson(groupJson, members);
-    });
-  }
+  Future<List<Group>> groups() async =>
+      _fetch<Group>("groups", (groupJson) async {
+        String id = groupJson['id'];
+        List<User> members = await groupMembers(id);
+        return Group.fromJson(groupJson, members);
+      });
 
-  Future<List<Wish>> wishes() async => fetch<Wish>("wishes", Wish.fromJson);
+  Future<List<User>> getUser(String userId) async =>
+      _fetch<User>("users/$userId", User.fromJson);
+
+  Future<List<Wish>> wishes() async => _fetch<Wish>("wishes", (wishJson) async {
+        String id = wishJson['userId'];
+        List<User> user = await getUser(id);
+        return Wish.fromJson(wishJson, user.first);
+      });
 
   Future<String> getGroupInviteLink(String groupId) async {
     Uri uri = Uri.parse("$_baseUrl/groups/$groupId/invite");

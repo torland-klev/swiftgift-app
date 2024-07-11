@@ -6,11 +6,9 @@ import 'group.dart';
 
 class _GroupCard extends StatefulWidget {
   final Group group;
-  final Color textColor;
 
   const _GroupCard({
     required this.group,
-    required this.textColor,
   });
 
   @override
@@ -44,17 +42,15 @@ class _GroupCardState extends State<_GroupCard> {
             child: ListTile(
               title: Text(
                 widget.group.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20.0,
                   fontWeight: FontWeight.bold,
-                  color: widget.textColor,
                 ),
               ),
               subtitle: Text(
                 'Members: ${widget.group.members.length}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16.0,
-                  color: widget.textColor,
                 ),
               ),
             ),
@@ -97,7 +93,6 @@ class _AllGroupsScreenState extends State<AllGroupsScreen> {
                         .map(
                           (entry) => _GroupCard(
                             group: entry.value,
-                            textColor: Colors.white,
                           ),
                         )
                         .toList(),
