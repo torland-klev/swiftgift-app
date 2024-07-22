@@ -72,33 +72,37 @@ class _AllGroupsScreenState extends State<AllGroupsScreen> {
   final Future<List<Group>> _groups = apiClient.groups();
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: FutureBuilder<List<Group>>(
-            future: _groups,
-            builder:
-                (BuildContext context, AsyncSnapshot<List<Group>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return const Text('Could not retrieve groups');
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Text('No groups found');
-              } else {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListView(
-                    children: snapshot.data!
-                        .asMap()
-                        .entries
-                        .map(
-                          (entry) => _GroupCard(
-                            group: entry.value,
-                          ),
-                        )
-                        .toList(),
-                  ),
-                );
-              }
-            }));
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Groups'),
+        ),
+        body: Center(
+            child: FutureBuilder<List<Group>>(
+                future: _groups,
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<Group>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return const Text('Could not retrieve groups');
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Text('No groups found');
+                  } else {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ListView(
+                        children: snapshot.data!
+                            .asMap()
+                            .entries
+                            .map(
+                              (entry) => _GroupCard(
+                                group: entry.value,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    );
+                  }
+                })));
   }
 }

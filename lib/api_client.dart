@@ -102,4 +102,29 @@ class ApiClient {
     }
     return res.body;
   }
+
+  Future<Wish> postWish(Occasion occasion, WishVisibility visibility,
+      String imageUrl, String description, String? groupId) async {
+    Uri uri = Uri.parse("$_baseUrl/wishes");
+
+    Response res = await http.post(uri,
+        headers: _headers,
+        body: jsonEncode({
+          'occasion': occasion.name,
+          'status': Status.open.name,
+          'visibility': visibility.name,
+          'imageUrl': imageUrl,
+          'description': description,
+          'groupId': groupId
+        }));
+
+    if (res.statusCode == 201) {
+      // If the server returns a CREATED response
+      return Wish.fromJson(
+          jsonDecode(res.body), User("id", "test", "tester", "test@test.com"));
+    } else {
+      // If the server returns an error response
+      throw Exception('Failed to create wish: ${res.body}');
+    }
+  }
 }
