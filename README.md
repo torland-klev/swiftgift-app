@@ -1,3 +1,3 @@
-# Gavelista App
+# SwiftGift Mobile App
 
-See also [Gavelista API](https://github.com/torland-klev/gavelista-api)
+See also [SwiftGift API](https://github.com/torland-klev/gavelista-api)
