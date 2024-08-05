@@ -103,8 +103,13 @@ class ApiClient {
     return res.body;
   }
 
-  Future<Wish> postWish(Occasion occasion, WishVisibility visibility,
-      String imageUrl, String description, String? groupId) async {
+  Future<Wish> postWish(
+      Occasion occasion,
+      WishVisibility visibility,
+      String imageUrl,
+      String description,
+      String? groupId,
+      String title) async {
     Uri uri = Uri.parse("$_baseUrl/wishes");
 
     Response res = await http.post(uri,
@@ -115,7 +120,8 @@ class ApiClient {
           'visibility': visibility.name,
           'imageUrl': imageUrl,
           'description': description,
-          'groupId': groupId
+          'groupId': groupId,
+          'title': title
         }));
 
     if (res.statusCode == 201) {

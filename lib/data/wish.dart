@@ -26,6 +26,7 @@ class Wish {
   String id;
   User createdBy;
   Occasion occasion;
+  String title;
   Status status;
   WishVisibility visibility;
   String? imageUrl;
@@ -35,6 +36,7 @@ class Wish {
       {required this.id,
       required this.createdBy,
       required this.occasion,
+      required this.title,
       required this.status,
       required this.visibility,
       this.imageUrl,
@@ -45,6 +47,7 @@ class Wish {
       id: json['id'],
       createdBy: createdBy,
       imageUrl: json['img'],
+      title: json['title'],
       description: json['description'],
       occasion: Occasion.values.firstWhere(
         (e) => e.name == json['occasion'].toLowerCase(),

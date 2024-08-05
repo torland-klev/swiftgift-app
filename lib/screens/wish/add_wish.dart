@@ -15,6 +15,7 @@ class AddWishesScreen extends StatefulWidget {
 
 class _AddWishesScreenState extends State<AddWishesScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _imageUrlController = TextEditingController();
   Occasion? _selectedOccasion;
@@ -25,6 +26,7 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _descriptionController.dispose();
     _imageUrlController.dispose();
     super.dispose();
@@ -42,7 +44,8 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                   : WishVisibility.public,
               _imageUrlController.text,
               _descriptionController.text,
-              _selectedGroup?.id)
+              _selectedGroup?.id,
+              _titleController.text)
           .then((wish) {
         if (kDebugMode) {
           print(wish.toJson());
@@ -64,6 +67,52 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: 'Wish Title'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _imageUrlController,
+                decoration: const InputDecoration(labelText: 'Image URL'),
+                keyboardType: TextInputType.url,
+                validator: (value) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      !Uri.parse(value).isAbsolute) {
+                    return 'Please enter a valid URL';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 150.0, // Adjust height as needed
+                child: TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLength: 200,
+                  textAlignVertical: TextAlignVertical.top,
+                  maxLines: null,
+                  expands: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<Occasion>(
                 value: _selectedOccasion,
                 decoration: const InputDecoration(labelText: 'Occasion'),
@@ -109,41 +158,6 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                     );
                   }
                 },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(labelText: 'Image URL'),
-                keyboardType: TextInputType.url,
-                validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      !Uri.parse(value).isAbsolute) {
-                    return 'Please enter a valid URL';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 150.0, // Adjust height as needed
-                child: TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLength: 200,
-                  textAlignVertical: TextAlignVertical.top,
-                  maxLines: null,
-                  expands: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                ),
               ),
               const SizedBox(height: 16),
               SwitchListTile(
