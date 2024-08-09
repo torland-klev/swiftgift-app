@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'api_client.dart';
+import '../api_client.dart';
 
 extension Jsonify on GoogleSignInAccount {
   Map<String, dynamic> toJson(String? accessToken) {
@@ -29,7 +29,7 @@ Future<void> handleSignIn(
   try {
     signedInCallback(null);
     GoogleSignInAccount? account = await googleSignIn.signIn();
-    await client.login(account);
+    await client.loginGoogle(account);
     signedInCallback(true);
   } catch (error) {
     if (kDebugMode) {

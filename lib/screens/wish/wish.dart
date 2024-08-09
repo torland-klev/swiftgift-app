@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:gaveliste_app/main.dart';
@@ -18,29 +20,66 @@ class _WishCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (wish.imageUrl != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Image.network(
-                wish.imageUrl!,
-                width: 150,
-                height: 150,
-              ),
-            ),
-          if (wish.description != null)
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                wish.description!.toCapitalized(),
-                style: const TextStyle(
-                  fontSize: 20,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 200),
+                  child: Text(
+                    wish.title.toCapitalized(),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
+                if (wish.description != null &&
+                    wish.description!.trim().isNotEmpty)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 200),
+                    child: Text(
+                      wish.description!.toCapitalized().trim(),
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
             ),
+          ),
+          FutureBuilder<File?>(
+            future: apiClient.getImage(wish.img),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return const SizedBox(width: 120, height: 110);
+              } else if (snapshot.hasData && snapshot.data != null) {
+                return Container(
+                  width: 120,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: Image.file(
+                    snapshot.data!,
+                    fit: BoxFit.fitWidth,
+                  ),
+                );
+              } else {
+                return const SizedBox(width: 120, height: 60);
+              }
+            },
+          ),
         ],
       ),
     );
@@ -56,6 +95,7 @@ class WishesScreen extends StatefulWidget {
 
 class _WishesScreenState extends State<WishesScreen> {
   final Future<List<Wish>> _wishes = apiClient.wishes();
+  final List<Wish> _newlyCreatedWishes = List.empty(growable: true);
 
   void _addWish() {
     Navigator.push(
@@ -63,7 +103,9 @@ class _WishesScreenState extends State<WishesScreen> {
       MaterialPageRoute(
         builder: (context) => const AddWishesScreen(),
       ),
-    );
+    ).then((wish) => setState(() {
+          _newlyCreatedWishes.add(wish);
+        }));
   }
 
   void _seeMyWishes() {
@@ -88,16 +130,17 @@ class _WishesScreenState extends State<WishesScreen> {
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Text('No wishes found');
                 } else {
+                  var combined = List.empty(growable: true);
+                  combined.addAll(snapshot.requireData);
+                  combined.addAll(_newlyCreatedWishes);
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ListView(
-                      children: snapshot.data!
-                          .asMap()
-                          .entries
-                          .where((wish) => wish.value.status == Status.open)
+                      children: combined
+                          .where((wish) => wish.status == Status.open)
                           .map(
                             (entry) => _WishCard(
-                              wish: entry.value,
+                              wish: entry,
                             ),
                           )
                           .toList(),

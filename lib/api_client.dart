@@ -2,11 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:gaveliste_app/google_login.dart';
+import 'package:gaveliste_app/auth/google_login.dart';
+import 'package:gaveliste_app/main.dart';
+import 'package:gaveliste_app/util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'data/group.dart';
 import 'data/user.dart';
@@ -25,21 +30,28 @@ Future<T> _fromJsonHandler<T>(
 }
 
 class ApiClient {
-  late final String _baseUrl;
+  final String _baseUrl = getBaseUrl();
   late final Map<String, String> _headers;
 
   ApiClient() {
-    String? baseUrl = dotenv.env['API_URL'];
-    if (baseUrl == null) {
-      throw const FormatException("Missing env variable API_URL");
-    }
-    _baseUrl = baseUrl;
     _headers = {
       'Content-Type': 'application/json; charset=UTF-8',
     };
   }
 
-  Future<Response> login(GoogleSignInAccount? account) async {
+  loginLocal() async {
+    if (curEnv != AppEnvironment.local) {
+      throw Exception("Function not supported for env $curEnv");
+    }
+    _headers['Authorization'] = "Bearer ${env('LOCAL_ACCESS_TOKEN')}";
+    List<User> res = await _fetch<User>("me", User.fromJson);
+    if (res.isEmpty) {
+      throw Exception(
+          "Unable to find user with token ${env('LOCAL_ACCESS_TOKEN')}");
+    }
+  }
+
+  Future<Response> loginGoogle(GoogleSignInAccount? account) async {
     if (account == null) {
       throw const HttpException("Unable to sign in google account");
     }
@@ -106,7 +118,7 @@ class ApiClient {
   Future<Wish> postWish(
       Occasion occasion,
       WishVisibility visibility,
-      String imageUrl,
+      String? imageUrl,
       String description,
       String? groupId,
       String title) async {
@@ -118,7 +130,7 @@ class ApiClient {
           'occasion': occasion.name,
           'status': Status.open.name,
           'visibility': visibility.name,
-          'imageUrl': imageUrl,
+          'img': imageUrl,
           'description': description,
           'groupId': groupId,
           'title': title
@@ -131,6 +143,53 @@ class ApiClient {
     } else {
       // If the server returns an error response
       throw Exception('Failed to create wish: ${res.body}');
+    }
+  }
+
+  Future<String> uploadImage(File selectedImage) async {
+    Uri uri = Uri.parse("$_baseUrl/images");
+    MultipartRequest request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(_headers);
+    request.files.add(
+      await http.MultipartFile.fromPath('image', selectedImage.path,
+          contentType: MediaType.parse(lookupMimeType(selectedImage.path)!),
+          filename: basename(selectedImage.path)),
+    );
+
+    StreamedResponse streamedResponse = await request.send();
+    Response res = await http.Response.fromStream(streamedResponse);
+    if (res.statusCode == 201) {
+      return res.body;
+    } else {
+      throw Exception('Failed to upload image: ${res.body}');
+    }
+  }
+
+  Future<File?> getImage(String? imgId) async {
+    if (imgId == null) {
+      return null;
+    } else {
+      Uri uri = Uri.parse("$_baseUrl/images/$imgId");
+      Response res = await http.get(uri, headers: _headers);
+      if (res.statusCode == 200) {
+        String contentType = res.headers['content-type']!;
+        String fileExtension = ".${contentType.split("/").last}";
+
+        Directory tempDir = await getTemporaryDirectory();
+
+        String fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_$imgId$fileExtension';
+
+        // Create the file in the temporary directory
+        File file = File('${tempDir.path}/$fileName');
+
+        // Write the bytes to the file
+        await file.writeAsBytes(res.bodyBytes);
+
+        return file;
+      } else {
+        throw Exception('Failed to load image: ${res.body}');
+      }
     }
   }
 }

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gaveliste_app/main.dart';
 import 'package:gaveliste_app/util.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../data/group.dart';
@@ -15,10 +18,13 @@ class AddWishesScreen extends StatefulWidget {
 }
 
 class _AddWishesScreenState extends State<AddWishesScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _titleFormKey = GlobalKey<FormState>();
+  final _imageFormKey = GlobalKey<FormState>();
+  final _descriptionFormKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _imageUrlController = TextEditingController();
+  final _titleFocusNode = FocusNode();
+  File? _selectedImage;
   Occasion? _selectedOccasion;
   bool _isPrivate = false;
   Group? _selectedGroup;
@@ -28,35 +34,57 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
   int _currentPageIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Request focus when the widget is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _titleFocusNode.requestFocus();
+    });
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose();
     _pageController.dispose();
+    _titleFocusNode.dispose();
     super.dispose();
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      apiClient
-          .postWish(
-              _selectedOccasion ?? Occasion.none,
-              _isPrivate
-                  ? _selectedGroup == null
-                      ? WishVisibility.private
-                      : WishVisibility.group
-                  : WishVisibility.public,
-              _imageUrlController.text,
-              _descriptionController.text,
-              _selectedGroup?.id,
-              _titleController.text)
-          .then((wish) {
-        if (kDebugMode) {
-          print(wish.toJson());
-        }
-        Navigator.pop(context, wish);
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
       });
     }
+  }
+
+  void _submitForm() async {
+    String? imageUrl = _selectedImage != null
+        ? await apiClient.uploadImage(_selectedImage!)
+        : null;
+
+    apiClient
+        .postWish(
+            _selectedOccasion ?? Occasion.none,
+            _isPrivate
+                ? _selectedGroup == null
+                    ? WishVisibility.private
+                    : WishVisibility.group
+                : WishVisibility.public,
+            imageUrl,
+            _descriptionController.text,
+            _selectedGroup?.id,
+            _titleController.text)
+        .then((wish) {
+      if (kDebugMode) {
+        print(wish.toJson());
+      }
+      Navigator.pop(context, wish);
+    });
   }
 
   void _goToPage(int pageIndex) {
@@ -72,9 +100,24 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
     }
   }
 
+  void _nextPage() {
+    if (_currentPageIndex >= 4) {
+      if (_descriptionFormKey.currentState?.validate() != false) {
+        FocusScope.of(context).unfocus();
+        _submitForm();
+      }
+    } else {
+      if (_titleFormKey.currentState?.validate() != false) {
+        FocusScope.of(context).unfocus();
+        _goToPage(_currentPageIndex + 1);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Add Wish'),
       ),
@@ -89,7 +132,8 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                 });
               },
               children: [
-                _buildTitleImagePage(),
+                _buildTitlePage(),
+                _buildImagePage(),
                 _buildGroupPage(),
                 _buildOccasionPage(),
                 _buildDescriptionPage(),
@@ -103,33 +147,25 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
               children: [
                 Opacity(
                   opacity: _currentPageIndex > 0 ? 1.0 : 0,
-                  child: ElevatedButton(
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, size: 50),
                     onPressed: () {
                       _goToPage(_currentPageIndex - 1);
                     },
-                    child: const Text('Previous'),
                   ),
                 ),
                 SmoothPageIndicator(
                   controller: _pageController,
-                  count: 4,
+                  count: 5,
                   effect: const WormEffect(),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_currentPageIndex >= 3) {
-                      _submitForm();
-                    } else {
-                      _goToPage(_currentPageIndex + 1);
-                    }
-                  },
-                  child: Text(
-                      _currentPageIndex == 2 && _selectedOccasion == null ||
-                              _currentPageIndex == 1 && _selectedGroup == null
-                          ? "Skip"
-                          : _currentPageIndex == 3
-                              ? 'Add Wish'
-                              : 'Next'),
+                IconButton(
+                  icon: Icon(
+                    _currentPageIndex >= 4 ? Icons.check : Icons.arrow_forward,
+                    color: _currentPageIndex >= 4 ? Colors.green : null,
+                    size: 50,
+                  ),
+                  onPressed: _nextPage,
                 ),
               ],
             ),
@@ -140,47 +176,94 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
     );
   }
 
-  Widget _buildTitleImagePage() {
+  Widget _buildTitlePage() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 16),
       child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        key: _titleFormKey,
+        child: Center(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Text(
+              'What is it you wish for?',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 40),
             TextFormField(
+              maxLength: 50,
               controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Wish Title'),
+              focusNode: _titleFocusNode,
+              textAlign: TextAlign.center,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (value) {
+                _nextPage();
+              },
+              onChanged: (value) {
+                if (_titleFormKey.currentState?.validate() == false) {
+                  setState(() {});
+                }
+              },
+              decoration: const InputDecoration(
+                errorStyle: TextStyle(height: 0),
+                helperText: ' ',
+              ),
+              style: const TextStyle(fontSize: 30),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter a title';
                 }
                 return null;
               },
+            )
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePage() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 32, bottom: 16),
+      child: Form(
+        key: _imageFormKey,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => _pickImage(ImageSource.gallery),
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blueAccent),
+                ),
+                child: _selectedImage != null
+                    ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                    : const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.file_upload,
+                              size: 60, color: Colors.blueGrey),
+                          Text("Select file", style: TextStyle(fontSize: 20)),
+                        ],
+                      ),
+              ),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _imageUrlController,
-              decoration: const InputDecoration(labelText: 'Image URL'),
-              keyboardType: TextInputType.url,
-              validator: (value) {
-                if (value != null &&
-                    value.isNotEmpty &&
-                    !Uri.parse(value).isAbsolute) {
-                  return 'Please enter a valid URL';
-                }
-                return null;
-              },
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.0),
+              child: Text("or"),
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Make private'),
-              value: _isPrivate,
-              onChanged: (bool value) {
-                setState(() {
-                  _isPrivate = value;
-                });
-              },
+            ElevatedButton.icon(
+              onPressed: () => _pickImage(ImageSource.camera),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text("Open Camera & Take Photo"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ],
         ),
@@ -190,17 +273,20 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
 
   Widget _buildDescriptionPage() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
       child: TextFormField(
+        key: _descriptionFormKey,
         controller: _descriptionController,
         decoration: const InputDecoration(
+          alignLabelWithHint: true,
           labelText: 'Description',
           border: OutlineInputBorder(),
         ),
-        maxLength: 200,
+        maxLength: 250,
         textAlignVertical: TextAlignVertical.top,
         maxLines: null,
         expands: true,
+        style: const TextStyle(fontSize: 24),
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter a description';
@@ -222,7 +308,6 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No occasions found'));
         } else {
-          // Filter out the `Occasion.none` value
           final occasions = snapshot.data!
               .where((occasion) => occasion != Occasion.none)
               .toList();
@@ -300,34 +385,64 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: ListView(
-                    children: snapshot.data!.map((Group group) {
-                      return Container(
+                    children: [
+                      Container(
                         margin: const EdgeInsets.only(bottom: 8.0),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: _selectedGroup == group
-                                ? Colors.blue
+                            color: _selectedGroup == null
+                                ? Colors.blueAccent
                                 : Colors.grey,
                           ),
                           borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: ListTile(
-                          title: Text(group.name),
-                          tileColor: _selectedGroup == group
+                          title: const Text("Only for me"),
+                          tileColor: _isPrivate == true
                               ? Colors.blue.withOpacity(0.1)
                               : null,
                           onTap: () {
                             setState(() {
-                              if (_selectedGroup == group) {
+                              if (!_isPrivate) {
                                 _selectedGroup = null;
+                                _isPrivate = true;
                               } else {
-                                _selectedGroup = group;
+                                _isPrivate = false;
                               }
                             });
                           },
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      ...snapshot.data!.map((Group group) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8.0),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: _selectedGroup == group
+                                  ? Colors.blue
+                                  : Colors.grey,
+                            ),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: ListTile(
+                            title: Text(group.name),
+                            tileColor: _selectedGroup == group
+                                ? Colors.blue.withOpacity(0.1)
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                if (_selectedGroup == group) {
+                                  _selectedGroup = null;
+                                } else {
+                                  _selectedGroup = group;
+                                  _isPrivate = false;
+                                }
+                              });
+                            },
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                 ),
               ],

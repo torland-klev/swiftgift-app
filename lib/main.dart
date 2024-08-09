@@ -5,20 +5,29 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gaveliste_app/api_client.dart';
-import 'package:gaveliste_app/google_login.dart';
+import 'package:gaveliste_app/auth/alternative_login.dart';
+import 'package:gaveliste_app/auth/google_login.dart';
 import 'package:gaveliste_app/screens/home.dart';
+import 'package:gaveliste_app/util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
 import 'firebase_options.dart';
 
+AppEnvironment curEnv = AppEnvironment.production;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  await initializeEnv();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const GavelisteApp());
+}
+
+Future<void> initializeEnv() async {
+  await dotenv.load(fileName: ".env");
+  curEnv = appEnv();
 }
 
 GoogleSignIn _initialGoogleSignIn() {
@@ -46,9 +55,9 @@ class GavelisteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gaveliste',
+      title: 'SwiftGift',
       theme: themeData,
-      home: const LandingPage(title: 'Gaveliste'),
+      home: const LandingPage(title: 'SwiftGift'),
     );
   }
 }
@@ -104,23 +113,42 @@ class _LandingPageState extends State<LandingPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 _signedIn == false
-                    ? Transform.scale(
-                        scale: 1.35,
-                        child: SignInButton(
-                          padding: const EdgeInsets.fromLTRB(30, 15, 0, 15),
-                          shape: const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10))),
-                          Buttons.google,
-                          onPressed: () {
-                            handleSignIn(_googleSignIn, apiClient,
-                                (bool? signedIn) {
-                              setState(() {
-                                _signedIn = signedIn;
-                              });
-                            });
-                          },
-                        ))
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Transform.scale(
+                              scale: 1.35,
+                              child: SignInButton(
+                                padding:
+                                    const EdgeInsets.fromLTRB(30, 15, 0, 15),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                Buttons.google,
+                                onPressed: () {
+                                  handleSignIn(_googleSignIn, apiClient,
+                                      (bool? signedIn) {
+                                    setState(() {
+                                      _signedIn = signedIn;
+                                    });
+                                  });
+                                },
+                              )),
+                          if (curEnv == AppEnvironment.local) ...[
+                            const SizedBox(height: 32),
+                            ElevatedButton(
+                              onPressed: () {
+                                handleLocalSignIn(apiClient, (bool? signedIn) {
+                                  setState(() {
+                                    _signedIn = signedIn;
+                                  });
+                                });
+                              },
+                              child: const Text('Local sign in'),
+                            ),
+                          ],
+                        ],
+                      )
                     : const SizedBox(
                         width: 60,
                         height: 60,

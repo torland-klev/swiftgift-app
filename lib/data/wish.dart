@@ -29,8 +29,9 @@ class Wish {
   String title;
   Status status;
   WishVisibility visibility;
-  String? imageUrl;
+  String? url;
   String? description;
+  String? img;
 
   Wish(
       {required this.id,
@@ -39,14 +40,16 @@ class Wish {
       required this.title,
       required this.status,
       required this.visibility,
-      this.imageUrl,
-      this.description});
+      this.url,
+      this.description,
+      this.img});
 
   factory Wish.fromJson(Map<String, dynamic> json, User createdBy) {
     return Wish(
       id: json['id'],
       createdBy: createdBy,
-      imageUrl: json['img'],
+      url: json['url'],
+      img: json['img'],
       title: json['title'],
       description: json['description'],
       occasion: Occasion.values.firstWhere(
@@ -71,7 +74,8 @@ class Wish {
       'occasion': occasion.name,
       'status': status.name,
       'visibility': visibility.name,
-      'imageUrl': imageUrl,
+      'url': url,
+      'img': img,
       'description': description
     };
   }
