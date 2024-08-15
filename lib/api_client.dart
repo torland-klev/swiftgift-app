@@ -197,17 +197,30 @@ class ApiClient {
   }
 
   Future<Response> loginApple(AuthorizationCredentialAppleID credential) async {
+    if (kDebugMode) {
+      print(credential);
+    }
     Uri uri = Uri.parse("$_baseUrl/appLogin/apple");
-    Response res =
-        await http.post(uri, headers: _headers, body: jsonEncode(credential));
+    Response res = await http.post(uri,
+        headers: _headers, body: jsonEncode(credential.toJson()));
     if (res.statusCode != 200) {
       throw const HttpException("Unable to create or retrieve user");
     }
     _headers['Authorization'] = "Bearer ${credential.identityToken}";
-    if (kDebugMode) {
-      print(credential);
-    }
 
     return res;
+  }
+}
+
+extension on AuthorizationCredentialAppleID {
+  Map<String, dynamic> toJson() {
+    return {
+      'userIdentifier': userIdentifier,
+      'givenName': givenName,
+      'familyName': familyName,
+      'email': email,
+      'authorizationCode': authorizationCode,
+      'identityToken': identityToken,
+    };
   }
 }
