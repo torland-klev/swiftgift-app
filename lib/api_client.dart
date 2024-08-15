@@ -58,7 +58,7 @@ class ApiClient {
     }
     GoogleSignInAuthentication auth = await account.authentication;
 
-    Uri uri = Uri.parse("$_baseUrl/appLogin");
+    Uri uri = Uri.parse("$_baseUrl/appLogin/google");
     Response res = await http.post(uri,
         headers: _headers, body: jsonEncode(account.toJson(auth.accessToken)));
     if (res.statusCode != 200) {
@@ -197,13 +197,13 @@ class ApiClient {
   }
 
   Future<Response> loginApple(AuthorizationCredentialAppleID credential) async {
-    Uri uri = Uri.parse("$_baseUrl/appLogin");
+    Uri uri = Uri.parse("$_baseUrl/appLogin/apple");
     Response res =
         await http.post(uri, headers: _headers, body: jsonEncode(credential));
     if (res.statusCode != 200) {
       throw const HttpException("Unable to create or retrieve user");
     }
-    _headers['Authorization'] = "Bearer ${credential.authorizationCode}";
+    _headers['Authorization'] = "Bearer ${credential.identityToken}";
     if (kDebugMode) {
       print(credential);
     }
