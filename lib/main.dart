@@ -2,15 +2,17 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide IconAlignment;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gaveliste_app/api_client.dart';
 import 'package:gaveliste_app/auth/alternative_login.dart';
+import 'package:gaveliste_app/auth/apple_login.dart';
 import 'package:gaveliste_app/auth/google_login.dart';
 import 'package:gaveliste_app/screens/home.dart';
 import 'package:gaveliste_app/util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'firebase_options.dart';
 
@@ -41,14 +43,6 @@ GoogleSignIn _initialGoogleSignIn() {
 
 GoogleSignIn _googleSignIn = _initialGoogleSignIn();
 
-ThemeData themeData = ThemeData(
-  cardColor: const Color.fromRGBO(120, 170, 255, 100),
-  colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.deepPurple,
-      surface: const Color.fromRGBO(74, 122, 247, 100)),
-  useMaterial3: true,
-);
-
 class GavelisteApp extends StatelessWidget {
   const GavelisteApp({super.key});
 
@@ -76,14 +70,6 @@ class _LandingPageState extends State<LandingPage> {
   bool? _signedIn = false;
 
   @override
-  void dispose() {
-    if (kDebugMode) {
-      _googleSignIn.signOut();
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (_signedIn == true) {
       Future.delayed(Duration.zero, () {
@@ -100,7 +86,7 @@ class _LandingPageState extends State<LandingPage> {
         children: <Widget>[
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: Theme.of(context).colorScheme.primary,
               image: const DecorationImage(
                 image: AssetImage('assets/gift-background.png'),
                 fit: BoxFit.none,
@@ -115,18 +101,33 @@ class _LandingPageState extends State<LandingPage> {
                 _signedIn == false
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 2,
                         children: [
-                          Transform.scale(
-                              scale: 1.35,
-                              child: SignInButton(
-                                padding:
-                                    const EdgeInsets.fromLTRB(30, 15, 0, 15),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10))),
-                                Buttons.google,
+                          SizedBox(
+                              width: 300,
+                              child: FittedBox(
+                                  child: SignInButton(
+                                      elevation: 0,
+                                      shape: const RoundedRectangleBorder(
+                                          side: BorderSide(width: 0.7),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(8))),
+                                      Buttons.google, onPressed: () {
+                                handleGoogleSignIn(_googleSignIn, apiClient,
+                                    (bool? signedIn) {
+                                  setState(() {
+                                    _signedIn = signedIn;
+                                  });
+                                });
+                              }))),
+                          SizedBox(
+                              width: 300,
+                              child: SignInWithAppleButton(
+                                height: 46,
+                                iconAlignment: IconAlignment.left,
+                                style: SignInWithAppleButtonStyle.whiteOutlined,
                                 onPressed: () {
-                                  handleSignIn(_googleSignIn, apiClient,
+                                  handleAppleSignIn(apiClient,
                                       (bool? signedIn) {
                                     setState(() {
                                       _signedIn = signedIn;

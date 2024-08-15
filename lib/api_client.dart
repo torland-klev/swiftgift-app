@@ -12,6 +12,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sign_in_with_apple_platform_interface/authorization_credential.dart';
 
 import 'data/group.dart';
 import 'data/user.dart';
@@ -74,7 +75,9 @@ class ApiClient {
 
   Future<List<T>> _fetch<T>(String endpoint, FromJson<T> fromJson) async {
     Uri uri = Uri.parse("$_baseUrl/$endpoint");
-    Response res = await http.get(uri, headers: _headers);
+    Response res = await http
+        .get(uri, headers: _headers)
+        .timeout(const Duration(seconds: 4));
     if (res.statusCode != 200) {
       throw const HttpException("Unable to fetch");
     }
@@ -191,5 +194,20 @@ class ApiClient {
         throw Exception('Failed to load image: ${res.body}');
       }
     }
+  }
+
+  Future<Response> loginApple(AuthorizationCredentialAppleID credential) async {
+    Uri uri = Uri.parse("$_baseUrl/appLogin");
+    Response res =
+        await http.post(uri, headers: _headers, body: jsonEncode(credential));
+    if (res.statusCode != 200) {
+      throw const HttpException("Unable to create or retrieve user");
+    }
+    _headers['Authorization'] = "Bearer ${credential.authorizationCode}";
+    if (kDebugMode) {
+      print(credential);
+    }
+
+    return res;
   }
 }

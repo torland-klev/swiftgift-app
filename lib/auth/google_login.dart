@@ -21,7 +21,7 @@ const List<String> scopes = <String>[
   'https://www.googleapis.com/auth/userinfo.profile',
 ];
 
-Future<void> handleSignIn(
+Future<void> handleGoogleSignIn(
   GoogleSignIn googleSignIn,
   ApiClient client,
   void Function(bool? signedIn) signedInCallback,

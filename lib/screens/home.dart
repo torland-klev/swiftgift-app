@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gaveliste_app/main.dart';
 import 'package:gaveliste_app/screens/wish/wish.dart';
 
+import '../util.dart';
 import 'group/groups.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -11,17 +11,22 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: themeData,
-        home: const DefaultTabController(
+        home: DefaultTabController(
             length: 3,
             child: Scaffold(
-                bottomNavigationBar: TabBar(
-                  tabs: [
-                    Tab(icon: Icon(Icons.card_giftcard)),
-                    Tab(icon: Icon(Icons.diversity_1)),
-                    Tab(icon: Icon(Icons.account_circle)),
-                  ],
+                bottomNavigationBar: Container(
+                  padding: const EdgeInsets.only(bottom: 30),
+                  child: const TabBar(
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    tabs: [
+                      Tab(icon: Icon(Icons.card_giftcard, size: 32)),
+                      Tab(icon: Icon(Icons.diversity_1, size: 32)),
+                      Tab(icon: Icon(Icons.account_circle, size: 32)),
+                    ],
+                  ),
                 ),
-                body: TabBarView(
+                body: const TabBarView(
                   children: [
                     Center(child: WishesScreen()),
                     Center(child: AllGroupsScreen()),

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gaveliste_app/main.dart';
 import 'package:gaveliste_app/util.dart';
@@ -80,9 +79,6 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
             _selectedGroup?.id,
             _titleController.text)
         .then((wish) {
-      if (kDebugMode) {
-        print(wish.toJson());
-      }
       Navigator.pop(context, wish);
     });
   }
@@ -119,7 +115,8 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Add Wish'),
+        title:
+            Text('Add Wish', style: Theme.of(context).textTheme.headlineMedium),
       ),
       body: Column(
         children: [
@@ -183,10 +180,8 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
         key: _titleFormKey,
         child: Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Text(
-              'What is it you wish for?',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text('What is it you wish for?',
+                style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 40),
             TextFormField(
               maxLength: 50,
@@ -273,26 +268,33 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
 
   Widget _buildDescriptionPage() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
-      child: TextFormField(
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 16),
+      child: Form(
         key: _descriptionFormKey,
-        controller: _descriptionController,
-        decoration: const InputDecoration(
-          alignLabelWithHint: true,
-          labelText: 'Description',
-          border: OutlineInputBorder(),
+        child: Center(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text('Add any more information?',
+                style: Theme.of(context).textTheme.bodyLarge),
+            const SizedBox(height: 40),
+            TextFormField(
+              maxLength: 250,
+              keyboardType: TextInputType.multiline,
+              minLines: 1,
+              maxLines: 8,
+              controller: _descriptionController,
+              textAlign: TextAlign.center,
+              textInputAction: TextInputAction.newline,
+              onFieldSubmitted: (value) {
+                _nextPage();
+              },
+              decoration: const InputDecoration(
+                errorStyle: TextStyle(height: 0),
+                helperText: ' ',
+              ),
+              style: Theme.of(context).textTheme.bodyMedium,
+            )
+          ]),
         ),
-        maxLength: 250,
-        textAlignVertical: TextAlignVertical.top,
-        maxLines: null,
-        expands: true,
-        style: const TextStyle(fontSize: 24),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter a description';
-          }
-          return null;
-        },
       ),
     );
   }
@@ -390,17 +392,14 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                         margin: const EdgeInsets.only(bottom: 8.0),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: _selectedGroup == null
-                                ? Colors.blueAccent
-                                : Colors.grey,
+                            color: _isPrivate ? Colors.blueAccent : Colors.grey,
                           ),
                           borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: ListTile(
                           title: const Text("Only for me"),
-                          tileColor: _isPrivate == true
-                              ? Colors.blue.withOpacity(0.1)
-                              : null,
+                          tileColor:
+                              _isPrivate ? Colors.blue.withOpacity(0.1) : null,
                           onTap: () {
                             setState(() {
                               if (!_isPrivate) {

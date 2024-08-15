@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 extension StringCasingExtension on String {
@@ -31,3 +32,39 @@ String getBaseUrl() {
       return env('LOCAL_API_URL');
   }
 }
+
+ThemeData themeData = ThemeData(
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: Colors.blueAccent,
+    brightness: Brightness.light,
+    primary: Colors.blueAccent,
+    secondary: Colors.amberAccent,
+    onPrimary: Colors.white,
+    onSecondary: Colors.black,
+    surface: Colors.white,
+    onSurface: Colors.black,
+    error: Colors.redAccent,
+    onError: Colors.white,
+  ),
+  useMaterial3: true,
+  textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+          color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+      headlineMedium: TextStyle(
+          color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+      headlineSmall: TextStyle(
+          color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold),
+      bodyLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      bodyMedium: TextStyle(fontSize: 20)),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white,
+      backgroundColor: Colors.blueAccent,
+    ),
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.blueAccent,
+    titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+    iconTheme: IconThemeData(color: Colors.white),
+  ),
+);

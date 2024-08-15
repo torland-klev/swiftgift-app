@@ -74,7 +74,8 @@ class _AllGroupsScreenState extends State<AllGroupsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Groups'),
+          title:
+              Text('Groups', style: Theme.of(context).textTheme.headlineMedium),
         ),
         body: Center(
             child: FutureBuilder<List<Group>>(
