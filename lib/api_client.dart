@@ -210,6 +210,13 @@ class ApiClient {
 
     return res;
   }
+
+  Future<List<Wish>> wishesForGroup(String groupId) async =>
+      _fetch<Wish>("groups/$groupId/wishes", (wishJson) async {
+        String id = wishJson['userId'];
+        List<User> user = await getUser(id);
+        return Wish.fromJson(wishJson, user.first);
+      });
 }
 
 extension on AuthorizationCredentialAppleID {
