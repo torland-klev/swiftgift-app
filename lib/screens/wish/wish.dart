@@ -255,6 +255,12 @@ class _WishesScreenState extends State<WishesScreen> {
                       child: ListView(
                         children: combined
                             .where((wish) => wish.status == Status.open)
+                            .where((wish) =>
+                                _filters?.occasion == null ||
+                                _filters!.occasion! == wish.occasion)
+                            .where((wish) =>
+                                _filters?.visibility == null ||
+                                _filters!.visibility! == wish.visibility)
                             .map(
                               (entry) => _WishCard(
                                 wish: entry,

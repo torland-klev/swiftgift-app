@@ -40,13 +40,23 @@ class ApiClient {
     };
   }
 
+  signOut() {
+    removeSharedPrefToken();
+    _headers.remove('Authorization');
+  }
+
+  _storeToken(String token) {
+    setSharedPrefToken(token);
+    _headers['Authorization'] = "Bearer $token";
+  }
+
   loginLocal() async {
     if (curEnv != AppEnvironment.local) {
       throw Exception("Function not supported for env $curEnv");
     }
-    _headers['Authorization'] = "Bearer ${env('LOCAL_ACCESS_TOKEN')}";
-    List<User> res = await _fetch<User>("me", User.fromJson);
-    if (res.isEmpty) {
+    _storeToken(env('LOCAL_ACCESS_TOKEN'));
+    User? res = await loggedInUser();
+    if (res == null) {
       throw Exception(
           "Unable to find user with token ${env('LOCAL_ACCESS_TOKEN')}");
     }
@@ -65,7 +75,7 @@ class ApiClient {
       throw const HttpException("Unable to create or retrieve user");
     }
     if (auth.accessToken != null) {
-      _headers['Authorization'] = "Bearer ${auth.accessToken!}";
+      _storeToken(auth.accessToken!);
       if (kDebugMode) {
         print(auth.accessToken);
       }
@@ -206,7 +216,7 @@ class ApiClient {
     if (res.statusCode != 200) {
       throw const HttpException("Unable to create or retrieve user");
     }
-    _headers['Authorization'] = "Bearer ${credential.identityToken}";
+    _storeToken(credential.identityToken!);
 
     return res;
   }
@@ -217,6 +227,24 @@ class ApiClient {
         List<User> user = await getUser(id);
         return Wish.fromJson(wishJson, user.first);
       });
+
+  Future<User?> loggedInUser() async =>
+      (await _fetch<User>("me", User.fromJson)).firstOrNull;
+
+  Future<bool> isStoredTokenValid() async {
+    try {
+      String? token = await getSharedPrefToken();
+      if (token != null) {
+        _storeToken(token);
+      }
+      return (await loggedInUser()) != null;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+    return false;
+  }
 }
 
 extension on AuthorizationCredentialAppleID {

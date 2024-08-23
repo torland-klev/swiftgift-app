@@ -27,6 +27,7 @@ dependencies:
   http_parser: ^4.0.2
   path_provider: ^2.1.4
   sign_in_with_apple: ^6.1.1
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

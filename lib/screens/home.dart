@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gaveliste_app/screens/user/user.dart';
 import 'package:gaveliste_app/screens/wish/wish.dart';
 
 import '../util.dart';
@@ -30,7 +31,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Center(child: WishesScreen()),
                     Center(child: AllGroupsScreen()),
-                    Center(child: Text("Noe profil-greier?")),
+                    Center(child: UserProfileScreen()),
                   ],
                 ))));
   }

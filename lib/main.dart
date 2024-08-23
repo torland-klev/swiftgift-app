@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -43,6 +44,16 @@ GoogleSignIn _initialGoogleSignIn() {
 
 GoogleSignIn _googleSignIn = _initialGoogleSignIn();
 
+logout(BuildContext context) async {
+  await _googleSignIn.signOut();
+  await apiClient.signOut();
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(
+      builder: (context) => const GavelisteApp(),
+    ),
+  );
+}
+
 class GavelisteApp extends StatelessWidget {
   const GavelisteApp({super.key});
 
@@ -67,20 +78,10 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  bool? _signedIn = false;
+  Future<bool?> _isSignedInFuture = apiClient.isStoredTokenValid();
 
   @override
   Widget build(BuildContext context) {
-    if (_signedIn == true) {
-      Future.delayed(Duration.zero, () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
-        );
-      });
-    }
-
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -95,67 +96,96 @@ class _LandingPageState extends State<LandingPage> {
             ),
           ),
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _signedIn == false
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 2,
-                        children: [
-                          SizedBox(
-                              width: 300,
-                              child: FittedBox(
-                                  child: SignInButton(
-                                      elevation: 0,
-                                      shape: const RoundedRectangleBorder(
-                                          side: BorderSide(width: 0.7),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(8))),
-                                      Buttons.google, onPressed: () {
-                                handleGoogleSignIn(_googleSignIn, apiClient,
-                                    (bool? signedIn) {
-                                  setState(() {
-                                    _signedIn = signedIn;
-                                  });
-                                });
-                              }))),
-                          SizedBox(
-                              width: 300,
-                              child: SignInWithAppleButton(
-                                height: 46,
-                                iconAlignment: IconAlignment.left,
-                                style: SignInWithAppleButtonStyle.whiteOutlined,
-                                onPressed: () {
-                                  handleAppleSignIn(apiClient,
-                                      (bool? signedIn) {
-                                    setState(() {
-                                      _signedIn = signedIn;
-                                    });
-                                  });
-                                },
-                              )),
-                          if (curEnv == AppEnvironment.local) ...[
-                            const SizedBox(height: 32),
-                            ElevatedButton(
-                              onPressed: () {
-                                handleLocalSignIn(apiClient, (bool? signedIn) {
-                                  setState(() {
-                                    _signedIn = signedIn;
-                                  });
-                                });
-                              },
-                              child: const Text('Local sign in'),
+            child: FutureBuilder<bool?>(
+              future: _isSignedInFuture,
+              builder: (BuildContext context, AsyncSnapshot<bool?> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting ||
+                    snapshot.hasData && snapshot.data == null) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: SizedBox(
+                      width: 300,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Text(
+                            'Something went wrong. Please try again later.',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                } else if (snapshot.hasData && snapshot.data == true) {
+                  Future.delayed(Duration.zero, () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                    );
+                  });
+                  return const SizedBox.shrink();
+                } else {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 300,
+                        child: FittedBox(
+                          child: SignInButton(
+                            elevation: 0,
+                            shape: const RoundedRectangleBorder(
+                              side: BorderSide(width: 0.7),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8)),
                             ),
-                          ],
-                        ],
-                      )
-                    : const SizedBox(
-                        width: 60,
-                        height: 60,
-                        child: CircularProgressIndicator(),
-                      )
-              ],
+                            Buttons.google,
+                            onPressed: () {
+                              handleGoogleSignIn(_googleSignIn, apiClient,
+                                  (bool? signedIn) {
+                                setState(() {
+                                  _isSignedInFuture = Future.value(signedIn);
+                                });
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 300,
+                        child: SignInWithAppleButton(
+                          height: 46,
+                          iconAlignment: IconAlignment.left,
+                          style: SignInWithAppleButtonStyle.whiteOutlined,
+                          onPressed: () {
+                            handleAppleSignIn(apiClient, (bool? signedIn) {
+                              setState(() {
+                                _isSignedInFuture = Future.value(signedIn);
+                              });
+                            });
+                          },
+                        ),
+                      ),
+                      if (curEnv == AppEnvironment.local) ...[
+                        const SizedBox(height: 32),
+                        ElevatedButton(
+                          onPressed: () {
+                            handleLocalSignIn(apiClient, (bool? signedIn) {
+                              setState(() {
+                                _isSignedInFuture = Future.value(signedIn);
+                              });
+                            });
+                          },
+                          child: const Text('Local sign in'),
+                        ),
+                      ],
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ],

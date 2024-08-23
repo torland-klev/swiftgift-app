@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 extension StringCasingExtension on String {
   String toCapitalized() =>
@@ -20,6 +21,28 @@ AppEnvironment appEnv() {
   return AppEnvironment.values.byName(dotenv.env['APP_ENV']?.toLowerCase() ??
       (throw FormatException(
           "Env variable APP_ENV not set to a valid value. One of ${AppEnvironment.values} expected.")));
+}
+
+Future<String?> getFromPref(String key) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString(key);
+}
+
+String _bearerTokenKey = "BEARER_TOKEN";
+
+Future<String?> getSharedPrefToken() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_bearerTokenKey);
+}
+
+Future<bool> setSharedPrefToken(String token) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.setString(_bearerTokenKey, token);
+}
+
+Future<bool> removeSharedPrefToken() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.remove(_bearerTokenKey);
 }
 
 String getBaseUrl() {
