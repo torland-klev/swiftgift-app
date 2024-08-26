@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -154,21 +155,23 @@ class _LandingPageState extends State<LandingPage> {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        width: 300,
-                        child: SignInWithAppleButton(
-                          height: 46,
-                          iconAlignment: IconAlignment.left,
-                          style: SignInWithAppleButtonStyle.whiteOutlined,
-                          onPressed: () {
-                            handleAppleSignIn(apiClient, (bool? signedIn) {
-                              setState(() {
-                                _isSignedInFuture = Future.value(signedIn);
+                      if (Platform.isIOS &&
+                          env("APPLE_LOGIN_ENABLED") == "true")
+                        SizedBox(
+                          width: 300,
+                          child: SignInWithAppleButton(
+                            height: 46,
+                            iconAlignment: IconAlignment.left,
+                            style: SignInWithAppleButtonStyle.whiteOutlined,
+                            onPressed: () {
+                              handleAppleSignIn(apiClient, (bool? signedIn) {
+                                setState(() {
+                                  _isSignedInFuture = Future.value(signedIn);
+                                });
                               });
-                            });
-                          },
+                            },
+                          ),
                         ),
-                      ),
                       if (curEnv == AppEnvironment.local) ...[
                         const SizedBox(height: 32),
                         ElevatedButton(

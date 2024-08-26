@@ -144,7 +144,7 @@ class _WishesScreenState extends State<WishesScreen> {
             return visibility.name.toCapitalized();
           }),
           FutureBuilder<List<Group>>(
-            future: apiClient.groups(), // Replace with your API call
+            future: apiClient.groups(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   snapshot.hasError ||

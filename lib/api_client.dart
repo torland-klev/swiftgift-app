@@ -216,7 +216,7 @@ class ApiClient {
     if (res.statusCode != 200) {
       throw const HttpException("Unable to create or retrieve user");
     }
-    _storeToken(credential.identityToken!);
+    _storeToken(credential.authorizationCode);
 
     return res;
   }
