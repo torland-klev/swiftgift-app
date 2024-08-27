@@ -34,27 +34,35 @@ class UserProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildReadOnlyField(
-                      label: 'First Name', value: user.firstName),
-                  const SizedBox(height: 16),
-                  _buildReadOnlyField(label: 'Last Name', value: user.lastName),
-                  const SizedBox(height: 16),
-                  _buildReadOnlyField(label: 'Email', value: user.email),
-                  const SizedBox(height: 32),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildReadOnlyField(
+                            label: 'First Name', value: user.firstName),
+                        const SizedBox(height: 16),
+                        _buildReadOnlyField(
+                            label: 'Last Name', value: user.lastName),
+                        const SizedBox(height: 16),
+                        _buildReadOnlyField(label: 'Email', value: user.email),
+                      ]),
                   Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        logout(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 12),
-                        textStyle: const TextStyle(fontSize: 16),
+                    child: Column(children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          logout(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        child: const Text('Log Out'),
                       ),
-                      child: const Text('Log Out'),
-                    ),
+                      const SizedBox(height: 32),
+                    ]),
                   ),
                 ],
               ),
@@ -84,6 +92,7 @@ class UserProfileScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(8),

@@ -1,84 +1,12 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:gaveliste_app/data/group.dart';
 import 'package:gaveliste_app/main.dart';
 import 'package:gaveliste_app/screens/wish/add_wish.dart';
 import 'package:gaveliste_app/util.dart';
 
 import '../../data/wish.dart';
-
-class _WishCard extends StatelessWidget {
-  final Wish wish;
-
-  const _WishCard({required this.wish});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 180),
-                child: Text(
-                  wish.title.toCapitalized(),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (wish.description != null &&
-                  wish.description!.trim().isNotEmpty)
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 180),
-                  child: Text(
-                    wish.description!.toCapitalized().trim(),
-                    style: const TextStyle(
-                      fontSize: 20,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
-          ),
-          FutureBuilder<File?>(
-            future: apiClient.getImage(wish.img),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return const SizedBox(width: 120);
-              } else if (snapshot.hasData && snapshot.data != null) {
-                return Container(
-                  width: 120,
-                  constraints:
-                      const BoxConstraints(maxHeight: 110, minHeight: 80),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  clipBehavior: Clip.hardEdge,
-                  child: Image.file(
-                    snapshot.data!,
-                    fit: BoxFit.fitWidth,
-                  ),
-                );
-              } else {
-                return const SizedBox(width: 120, height: 80);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
+import 'wish_card.dart';
 
 class _Filters {
   Occasion? occasion;
@@ -88,15 +16,21 @@ class _Filters {
   _Filters(this.occasion, this.visibility, this.group);
 }
 
-class WishesScreen extends StatefulWidget {
-  const WishesScreen({super.key});
+class MyWishesScreen extends StatefulWidget {
+  const MyWishesScreen({super.key});
 
   @override
-  State<WishesScreen> createState() => _WishesScreenState();
+  State<MyWishesScreen> createState() => _MyWishesScreenState();
 }
 
-class _WishesScreenState extends State<WishesScreen> {
-  final List<Wish> _newlyCreatedWishes = List.empty(growable: true);
+class _MyWishesScreenState extends State<MyWishesScreen> {
+  late final Future<List<Group>> _groups;
+
+  @override
+  void initState() {
+    _groups = apiClient.groups();
+    super.initState();
+  }
 
   void _addWish() {
     Navigator.push(
@@ -109,13 +43,8 @@ class _WishesScreenState extends State<WishesScreen> {
             if (kDebugMode) {
               print(wish.toJson());
             }
-            _newlyCreatedWishes.add(wish);
           }
         }));
-  }
-
-  void _seeMyWishes() {
-    Navigator.pushNamed(context, '/myWishes');
   }
 
   Widget _buildFilterBar(BuildContext context, _Filters? filters,
@@ -132,6 +61,9 @@ class _WishesScreenState extends State<WishesScreen> {
             (occasion) {
               onChange(_Filters(occasion, filters?.visibility, filters?.group));
             },
+            () {
+              onChange(_Filters(null, filters?.visibility, filters?.group));
+            },
             (occasion) {
               return occasion.name.toCapitalized();
             },
@@ -140,11 +72,13 @@ class _WishesScreenState extends State<WishesScreen> {
               context, 'Visibility', WishVisibility.values, filters?.visibility,
               (visibility) {
             onChange(_Filters(filters?.occasion, visibility, filters?.group));
+          }, () {
+            onChange(_Filters(filters?.occasion, null, filters?.group));
           }, (visibility) {
             return visibility.name.toCapitalized();
           }),
           FutureBuilder<List<Group>>(
-            future: apiClient.groups(),
+            future: _groups,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   snapshot.hasError ||
@@ -156,6 +90,9 @@ class _WishesScreenState extends State<WishesScreen> {
                     context, 'Group', snapshot.data!, filters?.group, (group) {
                   onChange(
                       _Filters(filters?.occasion, filters?.visibility, group));
+                }, () {
+                  onChange(
+                      _Filters(filters?.occasion, filters?.visibility, null));
                 }, (group) {
                   return group.name;
                 });
@@ -173,18 +110,25 @@ class _WishesScreenState extends State<WishesScreen> {
       List<T> options,
       T? selected,
       Function(T) onSelected,
+      Function() deselect,
       String Function(T) getLabel) {
     return GestureDetector(
       onTap: () async {
-        final selectedOption = await Navigator.push<T>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FilterOptionsScreen<T>(
-                filterLabel: filterLabel, options: options, getLabel: getLabel),
-          ),
-        );
-        if (selectedOption != null) {
-          onSelected(selectedOption);
+        if (selected != null) {
+          deselect();
+        } else {
+          final selectedOption = await Navigator.push<T>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FilterOptionsScreen<T>(
+                  filterLabel: filterLabel,
+                  options: options,
+                  getLabel: getLabel),
+            ),
+          );
+          if (selectedOption != null) {
+            onSelected(selectedOption);
+          }
         }
       },
       child: Container(
@@ -233,7 +177,7 @@ class _WishesScreenState extends State<WishesScreen> {
             child: Center(
               child: FutureBuilder<List<Wish>>(
                 future: _filters?.group?.id == null
-                    ? apiClient.wishes()
+                    ? apiClient.wishesByLoggedOnUser()
                     : apiClient.wishesForGroup(_filters!.group!.id),
                 builder:
                     (BuildContext context, AsyncSnapshot<List<Wish>> snapshot) {
@@ -246,7 +190,6 @@ class _WishesScreenState extends State<WishesScreen> {
                   } else {
                     List<Wish> combined = List.empty(growable: true);
                     combined.addAll(snapshot.requireData);
-                    combined.addAll(_newlyCreatedWishes);
                     if (combined.isEmpty) {
                       return const Text('No wishes found');
                     }
@@ -262,7 +205,7 @@ class _WishesScreenState extends State<WishesScreen> {
                                 _filters?.visibility == null ||
                                 _filters!.visibility! == wish.visibility)
                             .map(
-                              (entry) => _WishCard(
+                              (entry) => WishCard(
                                 wish: entry,
                               ),
                             )
@@ -276,21 +219,10 @@ class _WishesScreenState extends State<WishesScreen> {
           ),
         ],
       ),
-      floatingActionButton: SpeedDial(
-        animatedIcon: AnimatedIcons.menu_close,
-        backgroundColor: Theme.of(context).primaryColor,
-        children: [
-          SpeedDialChild(
-            child: const Icon(Icons.add),
-            label: 'Add wish',
-            onTap: _addWish,
-          ),
-          SpeedDialChild(
-            child: const Icon(Icons.list),
-            label: 'See my wishes',
-            onTap: _seeMyWishes,
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _addWish(),
+        tooltip: 'Add wish',
+        child: const Icon(Icons.add),
       ),
     );
   }

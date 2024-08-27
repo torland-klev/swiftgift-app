@@ -35,14 +35,14 @@ class GroupDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(
-                    group.name,
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                group.name,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              Row(
+                children: [
                   Text(
                     'Created by ${group.createdBy.firstName} ${group.createdBy.lastName}',
                     style: TextStyle(
@@ -52,25 +52,29 @@ class GroupDetailsScreen extends StatelessWidget {
                             .onSurface
                             .withOpacity(.5)),
                   ),
-                ]),
-                const Spacer(),
-                Chip(
-                  shape: const StadiumBorder(side: BorderSide()),
-                  label: Text(
-                    group.visibility.toString().split('.').last.toCapitalized(),
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: group.visibility == GroupVisibility.public
-                            ? const Color.fromRGBO(65, 136, 254, 100)
-                            : Colors.white),
+                  const Spacer(),
+                  Chip(
+                    shape: const StadiumBorder(side: BorderSide()),
+                    label: Text(
+                      group.visibility
+                          .toString()
+                          .split('.')
+                          .last
+                          .toCapitalized(),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: group.visibility == GroupVisibility.public
+                              ? const Color.fromRGBO(65, 136, 254, 100)
+                              : Colors.white),
+                    ),
+                    backgroundColor: group.visibility == GroupVisibility.public
+                        ? const Color.fromRGBO(172, 204, 255, 100)
+                        : const Color.fromRGBO(65, 136, 254, 100),
                   ),
-                  backgroundColor: group.visibility == GroupVisibility.public
-                      ? const Color.fromRGBO(172, 204, 255, 100)
-                      : const Color.fromRGBO(65, 136, 254, 100),
-                ),
-              ],
-            ),
+                ],
+              )
+            ]),
             const SizedBox(height: 16),
             const Text(
               'Members:',

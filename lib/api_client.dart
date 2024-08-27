@@ -119,6 +119,19 @@ class ApiClient {
         return Wish.fromJson(wishJson, user.first);
       });
 
+  Future<List<Wish>> wishesByLoggedOnUser() async {
+    User? res = await loggedInUser();
+    if (res == null) {
+      return List.empty();
+    } else {
+      return _fetch<Wish>("users/${res.id}/wishes", (wishJson) async {
+        String id = wishJson['userId'];
+        List<User> user = await getUser(id);
+        return Wish.fromJson(wishJson, user.first);
+      });
+    }
+  }
+
   Future<String> getGroupInviteLink(String groupId) async {
     Uri uri = Uri.parse("$_baseUrl/groups/$groupId/invite");
     Response res = await http.post(uri, headers: _headers);

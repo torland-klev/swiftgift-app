@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gaveliste_app/screens/user/user.dart';
-import 'package:gaveliste_app/screens/wish/wish.dart';
+import 'package:gaveliste_app/screens/wish/my_wishes.dart';
 
 import '../util.dart';
 import 'group/groups.dart';
@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 body: const TabBarView(
                   children: [
-                    Center(child: WishesScreen()),
+                    Center(child: MyWishesScreen()),
                     Center(child: AllGroupsScreen()),
                     Center(child: UserProfileScreen()),
                   ],
