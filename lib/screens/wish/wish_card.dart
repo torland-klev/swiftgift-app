@@ -14,35 +14,34 @@ class WishCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 180),
-                child: Text(
-                  wish.title.toCapitalized(),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (wish.description != null &&
-                  wish.description!.trim().isNotEmpty)
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 180),
-                  child: Text(
-                    wish.description!.toCapitalized().trim(),
-                    style: const TextStyle(
-                      fontSize: 20,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 220),
+            child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        wish.title.toCapitalized(),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (wish.description != null &&
+                          wish.description!.trim().isNotEmpty)
+                        Text(
+                          wish.description!.toCapitalized().trim(),
+                          maxLines: 2,
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        )
+                    ])),
           ),
           FutureBuilder<File?>(
             future: apiClient.getImage(wish.img),
@@ -50,23 +49,25 @@ class WishCard extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
               } else if (snapshot.hasError) {
-                return const SizedBox(width: 120);
+                return const SizedBox(width: 130);
               } else if (snapshot.hasData && snapshot.data != null) {
                 return Container(
-                  width: 120,
+                  width: 130,
                   constraints:
                       const BoxConstraints(maxHeight: 110, minHeight: 80),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.0),
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(10.0),
+                        bottomRight: Radius.circular(10.0)),
                   ),
-                  clipBehavior: Clip.hardEdge,
+                  clipBehavior: Clip.antiAlias,
                   child: Image.file(
                     snapshot.data!,
-                    fit: BoxFit.fitWidth,
+                    fit: BoxFit.contain,
                   ),
                 );
               } else {
-                return const SizedBox(width: 120, height: 80);
+                return const SizedBox(width: 130, height: 80);
               }
             },
           ),

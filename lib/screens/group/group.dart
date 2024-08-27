@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:swiftgift_app/util.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:swiftgift_app/util.dart';
 
 import '../../data/group.dart';
 import '../../main.dart';
@@ -18,7 +18,7 @@ class GroupDetailsScreen extends StatelessWidget {
     }
     Share.share(
         'Vil du bli med i gavelista ${group.name}? Følg linken her:\n\n$url',
-        subject: "Gaveliste Invitasjon");
+        subject: "SwiftGift Invitasjon");
   }
 
   @override
