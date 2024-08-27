@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:gaveliste_app/data/group.dart';
-import 'package:gaveliste_app/main.dart';
-import 'package:gaveliste_app/screens/wish/add_wish.dart';
-import 'package:gaveliste_app/util.dart';
+import 'package:swiftgift_app/data/group.dart';
+import 'package:swiftgift_app/main.dart';
+import 'package:swiftgift_app/screens/wish/add_wish.dart';
+import 'package:swiftgift_app/util.dart';
 
 import '../../data/wish.dart';
 import 'wish_card.dart';
@@ -160,8 +160,8 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('Wishes', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text('My Wishes',
+            style: Theme.of(context).textTheme.headlineMedium),
       ),
       body: Column(
         children: [

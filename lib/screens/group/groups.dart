@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gaveliste_app/main.dart';
+import 'package:swiftgift_app/main.dart';
 
 import '../../data/group.dart';
 import 'group.dart';

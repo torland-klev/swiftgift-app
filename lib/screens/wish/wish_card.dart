@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:gaveliste_app/util.dart';
+import 'package:swiftgift_app/util.dart';
 
 import '../../data/wish.dart';
 import '../../main.dart';

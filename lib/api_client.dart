@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:gaveliste_app/auth/google_login.dart';
-import 'package:gaveliste_app/main.dart';
-import 'package:gaveliste_app/util.dart';
+import 'package:swiftgift_app/auth/google_login.dart';
+import 'package:swiftgift_app/main.dart';
+import 'package:swiftgift_app/util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';

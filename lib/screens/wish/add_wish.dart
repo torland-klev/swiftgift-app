@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:gaveliste_app/main.dart';
-import 'package:gaveliste_app/util.dart';
+import 'package:swiftgift_app/main.dart';
+import 'package:swiftgift_app/util.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gaveliste_app/screens/user/user.dart';
-import 'package:gaveliste_app/screens/wish/my_wishes.dart';
+import 'package:swiftgift_app/screens/user/user.dart';
+import 'package:swiftgift_app/screens/wish/my_wishes.dart';
 
 import '../util.dart';
 import 'group/groups.dart';
