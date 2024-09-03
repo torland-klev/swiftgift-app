@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swiftgift_app/data/group.dart';
 import 'package:swiftgift_app/main.dart';
-import 'package:swiftgift_app/screens/wish/add_wish.dart';
 import 'package:swiftgift_app/util.dart';
 
 import '../../data/wish.dart';
@@ -30,21 +28,6 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
   void initState() {
     _groups = apiClient.groups();
     super.initState();
-  }
-
-  void _addWish() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddWishesScreen(),
-      ),
-    ).then((wish) => setState(() {
-          if (wish != null) {
-            if (kDebugMode) {
-              print(wish.toJson());
-            }
-          }
-        }));
   }
 
   Widget _buildFilterBar(BuildContext context, _Filters? filters,
@@ -193,24 +176,28 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
                     if (combined.isEmpty) {
                       return const Text('No wishes found');
                     }
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ListView(
-                        children: combined
-                            .where((wish) => wish.status == Status.open)
-                            .where((wish) =>
-                                _filters?.occasion == null ||
-                                _filters!.occasion! == wish.occasion)
-                            .where((wish) =>
-                                _filters?.visibility == null ||
-                                _filters!.visibility! == wish.visibility)
-                            .map(
-                              (entry) => WishCard(
-                                wish: entry,
-                              ),
-                            )
-                            .toList(),
-                      ),
+                    return ListView(
+                      children: combined
+                          .where((wish) => wish.status == Status.open)
+                          .where((wish) =>
+                              _filters?.occasion == null ||
+                              _filters!.occasion! == wish.occasion)
+                          .where((wish) =>
+                              _filters?.visibility == null ||
+                              _filters!.visibility! == wish.visibility)
+                          .map(
+                            (entry) => Column(children: [
+                              const Divider(),
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: WishCard(
+                                    wish: entry,
+                                  )),
+                              const Divider()
+                            ]),
+                          )
+                          .toList(),
                     );
                   }
                 },
@@ -218,11 +205,6 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addWish(),
-        tooltip: 'Add wish',
-        child: const Icon(Icons.add),
       ),
     );
   }
