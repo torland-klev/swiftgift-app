@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:swiftgift_app/main.dart';
-import 'package:swiftgift_app/util.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:swiftgift_app/main.dart';
+import 'package:swiftgift_app/util.dart';
 
 import '../../data/group.dart';
 import '../../data/wish.dart';
@@ -35,7 +35,6 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
   @override
   void initState() {
     super.initState();
-    // Request focus when the widget is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _titleFocusNode.requestFocus();
     });

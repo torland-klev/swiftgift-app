@@ -6,16 +6,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide IconAlignment;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_button/sign_in_button.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:swiftgift_app/api_client.dart';
 import 'package:swiftgift_app/auth/alternative_login.dart';
 import 'package:swiftgift_app/auth/apple_login.dart';
 import 'package:swiftgift_app/auth/google_login.dart';
 import 'package:swiftgift_app/screens/home.dart';
 import 'package:swiftgift_app/util.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_button/sign_in_button.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import 'auth/email_login.dart';
 import 'firebase_options.dart';
 
 AppEnvironment curEnv = AppEnvironment.production;
@@ -133,28 +134,23 @@ class _LandingPageState extends State<LandingPage> {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 300,
-                        child: FittedBox(
-                          child: SignInButton(
-                            elevation: 0,
-                            shape: const RoundedRectangleBorder(
-                              side: BorderSide(width: 0.7),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8)),
-                            ),
-                            Buttons.google,
-                            onPressed: () {
-                              handleGoogleSignIn(_googleSignIn, apiClient,
-                                  (bool? signedIn) {
-                                setState(() {
-                                  _isSignedInFuture = Future.value(signedIn);
-                                });
-                              });
-                            },
-                          ),
+                      SignInButton(
+                        elevation: 0,
+                        shape: const RoundedRectangleBorder(
+                          side: BorderSide(width: 0.7),
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
                         ),
+                        Buttons.google,
+                        onPressed: () {
+                          handleGoogleSignIn(_googleSignIn, apiClient,
+                              (bool? signedIn) {
+                            setState(() {
+                              _isSignedInFuture = Future.value(signedIn);
+                            });
+                          });
+                        },
                       ),
+                      const LogInWithEmailButton(),
                       if (Platform.isIOS &&
                           env("APPLE_LOGIN_ENABLED") == "true")
                         SizedBox(
