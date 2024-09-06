@@ -2,9 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:swiftgift_app/auth/google_login.dart';
-import 'package:swiftgift_app/main.dart';
-import 'package:swiftgift_app/util.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -13,6 +10,9 @@ import 'package:mime/mime.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sign_in_with_apple_platform_interface/authorization_credential.dart';
+import 'package:swiftgift_app/auth/google_login.dart';
+import 'package:swiftgift_app/main.dart';
+import 'package:swiftgift_app/util.dart';
 
 import 'data/group.dart';
 import 'data/user.dart';
@@ -68,7 +68,7 @@ class ApiClient {
     }
     GoogleSignInAuthentication auth = await account.authentication;
 
-    Uri uri = Uri.parse("$_baseUrl/appLogin/google");
+    Uri uri = Uri.parse("$_baseUrl/app/login/google");
     Response res = await http.post(uri,
         headers: _headers, body: jsonEncode(account.toJson(auth.accessToken)));
     if (res.statusCode != 200) {
@@ -223,7 +223,7 @@ class ApiClient {
     if (kDebugMode) {
       print(credential);
     }
-    Uri uri = Uri.parse("$_baseUrl/appLogin/apple");
+    Uri uri = Uri.parse("$_baseUrl/app/login/apple");
     Response res = await http.post(uri,
         headers: _headers, body: jsonEncode(credential.toJson()));
     if (res.statusCode != 200) {
