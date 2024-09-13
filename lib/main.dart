@@ -64,7 +64,7 @@ class GavelisteApp extends StatelessWidget {
     return MaterialApp(
       title: 'SwiftGift',
       theme: themeData,
-      home: const LandingPage(title: 'SwiftGift'),
+      home: const LandingPage(),
     );
   }
 }
@@ -72,8 +72,8 @@ class GavelisteApp extends StatelessWidget {
 ApiClient apiClient = ApiClient();
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({super.key, required this.title});
-  final String title;
+  const LandingPage({super.key});
+  final String title = 'SwiftGift';
 
   @override
   State<LandingPage> createState() => _LandingPageState();

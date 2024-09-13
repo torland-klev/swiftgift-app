@@ -28,6 +28,7 @@ dependencies:
   path_provider: ^2.1.4
   sign_in_with_apple: ^6.1.2
   shared_preferences: ^2.3.2
+  flutter_otp_text_field: ^1.2.0
 
 dev_dependencies:
   flutter_test:

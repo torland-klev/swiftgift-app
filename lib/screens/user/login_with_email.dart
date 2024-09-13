@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:swiftgift_app/main.dart';
 
 class LoginWithEmailScreen extends StatefulWidget {
   const LoginWithEmailScreen({super.key});
@@ -8,22 +10,18 @@ class LoginWithEmailScreen extends StatefulWidget {
 
 class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
   final _emailFormKey = GlobalKey<FormState>();
-  final _otpFormKey = GlobalKey<FormState>();
-  final _nameFormKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
-  final _otpController = TextEditingController();
-  final _nameController = TextEditingController();
 
   final _emailFocusNode = FocusNode();
 
   final PageController _pageController = PageController();
-  int _currentPageIndex = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _emailPage();
       _emailFocusNode.requestFocus();
     });
   }
@@ -31,37 +29,67 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
   @override
   void dispose() {
     _emailController.dispose();
-    _otpController.dispose();
-    _nameController.dispose();
     _pageController.dispose();
     _emailFocusNode.dispose();
     super.dispose();
   }
 
-  void _goToPage(int pageIndex) {
+  void _loader() {
     if (_pageController.hasClients) {
       _pageController.animateToPage(
-        pageIndex,
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-      setState(() {
-        _currentPageIndex = pageIndex;
+    }
+  }
+
+  void _emailPage() {
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _otpPage() {
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        2,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _handleEmailSubmitted(String email) {
+    if (email.isNotEmpty) {
+      _loader();
+      apiClient.loginEmail(email).then((statusCode) {
+        if (statusCode == 200) {
+          _otpPage();
+        } else {
+          _emailPage();
+        }
       });
     }
   }
 
-  void _submitForm() async {}
-
-  void _nextPage() {
-    if (_currentPageIndex >= 4) {
-      _submitForm();
-    } else {
-      if (_emailFormKey.currentState?.validate() != false) {
-        FocusScope.of(context).unfocus();
-        _goToPage(_currentPageIndex + 1);
+  void _handleOtpEntered(String otp) {
+    _loader();
+    apiClient.loginOtp(_emailController.text, otp).then((statusCode) {
+      if (statusCode == 200) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LandingPage(),
+          ),
+        );
+      } else {
+        _otpPage();
       }
-    }
+    });
   }
 
   @override
@@ -72,12 +100,8 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
           Expanded(
             child: PageView(
               controller: _pageController,
-              onPageChanged: (page) {
-                setState(() {
-                  _currentPageIndex = page;
-                });
-              },
               children: [
+                _buildLoaderPage(),
                 _buildEmailPage(),
                 _buildOtpPage(),
               ],
@@ -86,6 +110,10 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildLoaderPage() {
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildEmailPage() {
@@ -99,14 +127,11 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
                 style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 40),
             TextFormField(
-              maxLength: 50,
               controller: _emailController,
               focusNode: _emailFocusNode,
               textAlign: TextAlign.center,
               textInputAction: TextInputAction.done,
-              onFieldSubmitted: (value) {
-                _nextPage();
-              },
+              onFieldSubmitted: _handleEmailSubmitted,
               onChanged: (value) {
                 if (_emailFormKey.currentState?.validate() == false) {
                   setState(() {});
@@ -116,7 +141,7 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
                 errorStyle: TextStyle(height: 0),
                 helperText: ' ',
               ),
-              style: const TextStyle(fontSize: 30),
+              style: const TextStyle(fontSize: 22),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter an email';
@@ -132,42 +157,18 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
 
   Widget _buildOtpPage() {
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 16),
-      child: Form(
-        key: _otpFormKey,
+        padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 16),
         child: Center(
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('What is your email?',
-                style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 40),
-            TextFormField(
-              maxLength: 50,
-              controller: _otpController,
-              textAlign: TextAlign.center,
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (value) {
-                _nextPage();
-              },
-              onChanged: (value) {
-                if (_otpFormKey.currentState?.validate() == false) {
-                  setState(() {});
-                }
-              },
-              decoration: const InputDecoration(
-                errorStyle: TextStyle(height: 0),
-                helperText: ' ',
-              ),
-              style: const TextStyle(fontSize: 30),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter OTP';
-                }
-                return null;
-              },
-            )
-          ]),
-        ),
-      ),
-    );
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text('Enter one-time code sent to your email',
+              style: Theme.of(context).textTheme.bodyLarge),
+          const SizedBox(height: 40),
+          OtpTextField(
+              numberOfFields: 6,
+              borderColor: const Color(0xFF512DA8),
+              showFieldAsBox: true,
+              onSubmit: _handleOtpEntered),
+        ])));
   }
 }

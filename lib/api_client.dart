@@ -47,32 +47,32 @@ class ApiClient {
 
   _storeToken(String token) {
     setSharedPrefToken(token);
-    _headers['Authorization'] = "Bearer $token";
+    _headers['Authorization'] = 'Bearer $token';
   }
 
   loginLocal() async {
     if (curEnv != AppEnvironment.local) {
-      throw Exception("Function not supported for env $curEnv");
+      throw Exception('Function not supported for env $curEnv');
     }
     _storeToken(env('LOCAL_ACCESS_TOKEN'));
     User? res = await loggedInUser();
     if (res == null) {
       throw Exception(
-          "Unable to find user with token ${env('LOCAL_ACCESS_TOKEN')}");
+          'Unable to find user with token ${env('LOCAL_ACCESS_TOKEN')}');
     }
   }
 
   Future<Response> loginGoogle(GoogleSignInAccount? account) async {
     if (account == null) {
-      throw const HttpException("Unable to sign in google account");
+      throw const HttpException('Unable to sign in google account');
     }
     GoogleSignInAuthentication auth = await account.authentication;
 
-    Uri uri = Uri.parse("$_baseUrl/app/login/google");
+    Uri uri = Uri.parse('$_baseUrl/app/login/google');
     Response res = await http.post(uri,
         headers: _headers, body: jsonEncode(account.toJson(auth.accessToken)));
     if (res.statusCode != 200) {
-      throw const HttpException("Unable to create or retrieve user");
+      throw const HttpException('Unable to create or retrieve user');
     }
     if (auth.accessToken != null) {
       _storeToken(auth.accessToken!);
@@ -84,12 +84,12 @@ class ApiClient {
   }
 
   Future<List<T>> _fetch<T>(String endpoint, FromJson<T> fromJson) async {
-    Uri uri = Uri.parse("$_baseUrl/$endpoint");
+    Uri uri = Uri.parse('$_baseUrl/$endpoint');
     Response res = await http
         .get(uri, headers: _headers)
         .timeout(const Duration(seconds: 4));
     if (res.statusCode != 200) {
-      throw const HttpException("Unable to fetch");
+      throw const HttpException('Unable to fetch');
     }
     var content = json.decode(res.body);
     if (content is Iterable) {
@@ -101,19 +101,19 @@ class ApiClient {
   }
 
   Future<List<User>> groupMembers(String groupId) async =>
-      _fetch<User>("groups/$groupId/members", User.fromJson);
+      _fetch<User>('groups/$groupId/members', User.fromJson);
 
   Future<List<Group>> groups() async =>
-      _fetch<Group>("groups", (groupJson) async {
+      _fetch<Group>('groups', (groupJson) async {
         String id = groupJson['id'];
         List<User> members = await groupMembers(id);
         return Group.fromJson(groupJson, members);
       });
 
   Future<List<User>> getUser(String userId) async =>
-      _fetch<User>("users/$userId", User.fromJson);
+      _fetch<User>('users/$userId', User.fromJson);
 
-  Future<List<Wish>> wishes() async => _fetch<Wish>("wishes", (wishJson) async {
+  Future<List<Wish>> wishes() async => _fetch<Wish>('wishes', (wishJson) async {
         String id = wishJson['userId'];
         List<User> user = await getUser(id);
         return Wish.fromJson(wishJson, user.first);
@@ -124,7 +124,7 @@ class ApiClient {
     if (res == null) {
       return List.empty();
     } else {
-      return _fetch<Wish>("users/${res.id}/wishes", (wishJson) async {
+      return _fetch<Wish>('users/${res.id}/wishes', (wishJson) async {
         String id = wishJson['userId'];
         List<User> user = await getUser(id);
         return Wish.fromJson(wishJson, user.first);
@@ -133,10 +133,10 @@ class ApiClient {
   }
 
   Future<String> getGroupInviteLink(String groupId) async {
-    Uri uri = Uri.parse("$_baseUrl/groups/$groupId/invite");
+    Uri uri = Uri.parse('$_baseUrl/groups/$groupId/invite');
     Response res = await http.post(uri, headers: _headers);
     if (res.statusCode > 201) {
-      throw const HttpException("Unable to create invitation link");
+      throw const HttpException('Unable to create invitation link');
     }
     return res.body;
   }
@@ -148,7 +148,7 @@ class ApiClient {
       String description,
       String? groupId,
       String title) async {
-    Uri uri = Uri.parse("$_baseUrl/wishes");
+    Uri uri = Uri.parse('$_baseUrl/wishes');
 
     Response res = await http.post(uri,
         headers: _headers,
@@ -165,7 +165,7 @@ class ApiClient {
     if (res.statusCode == 201) {
       // If the server returns a CREATED response
       return Wish.fromJson(
-          jsonDecode(res.body), User("id", "test", "tester", "test@test.com"));
+          jsonDecode(res.body), User('id', 'test', 'tester', 'test@test.com'));
     } else {
       // If the server returns an error response
       throw Exception('Failed to create wish: ${res.body}');
@@ -173,7 +173,7 @@ class ApiClient {
   }
 
   Future<String> uploadImage(File selectedImage) async {
-    Uri uri = Uri.parse("$_baseUrl/images");
+    Uri uri = Uri.parse('$_baseUrl/images');
     MultipartRequest request = http.MultipartRequest('POST', uri);
     request.headers.addAll(_headers);
     request.files.add(
@@ -195,11 +195,11 @@ class ApiClient {
     if (imgId == null) {
       return null;
     } else {
-      Uri uri = Uri.parse("$_baseUrl/images/$imgId");
+      Uri uri = Uri.parse('$_baseUrl/images/$imgId');
       Response res = await http.get(uri, headers: _headers);
       if (res.statusCode == 200) {
         String contentType = res.headers['content-type']!;
-        String fileExtension = ".${contentType.split("/").last}";
+        String fileExtension = '.${contentType.split('/').last}';
 
         Directory tempDir = await getTemporaryDirectory();
 
@@ -223,11 +223,11 @@ class ApiClient {
     if (kDebugMode) {
       print(credential);
     }
-    Uri uri = Uri.parse("$_baseUrl/app/login/apple");
+    Uri uri = Uri.parse('$_baseUrl/app/login/apple');
     Response res = await http.post(uri,
         headers: _headers, body: jsonEncode(credential.toJson()));
     if (res.statusCode != 200) {
-      throw const HttpException("Unable to create or retrieve user");
+      throw const HttpException('Unable to create or retrieve user');
     }
     _storeToken(credential.authorizationCode);
 
@@ -235,14 +235,14 @@ class ApiClient {
   }
 
   Future<List<Wish>> wishesForGroup(String groupId) async =>
-      _fetch<Wish>("groups/$groupId/wishes", (wishJson) async {
+      _fetch<Wish>('groups/$groupId/wishes', (wishJson) async {
         String id = wishJson['userId'];
         List<User> user = await getUser(id);
         return Wish.fromJson(wishJson, user.first);
       });
 
   Future<User?> loggedInUser() async =>
-      (await _fetch<User>("me", User.fromJson)).firstOrNull;
+      (await _fetch<User>('me', User.fromJson)).firstOrNull;
 
   Future<bool> isStoredTokenValid() async {
     try {
@@ -257,6 +257,25 @@ class ApiClient {
       }
     }
     return false;
+  }
+
+  Future<int> loginEmail(String email) async {
+    Uri uri = Uri.parse('$_baseUrl/app/login/email');
+    Response res = await http.post(uri,
+        headers: _headers, body: jsonEncode({'email': email}));
+    return res.statusCode;
+  }
+
+  Future<int> loginOtp(String email, String otp) async {
+    Uri uri = Uri.parse('$_baseUrl/app/login/email');
+    Response res = await http.post(uri,
+        headers: _headers, body: jsonEncode({'email': email, 'code': otp}));
+    Map<String, dynamic> body = jsonDecode(res.body);
+    String? token = body['session']['token'];
+    if (token != null) {
+      _storeToken(token);
+    }
+    return res.statusCode;
   }
 }
 
