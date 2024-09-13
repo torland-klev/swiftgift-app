@@ -14,9 +14,11 @@ import 'package:swiftgift_app/auth/alternative_login.dart';
 import 'package:swiftgift_app/auth/apple_login.dart';
 import 'package:swiftgift_app/auth/google_login.dart';
 import 'package:swiftgift_app/screens/home.dart';
+import 'package:swiftgift_app/screens/user/update_user_name.dart';
 import 'package:swiftgift_app/util.dart';
 
 import 'auth/email_login.dart';
+import 'data/user.dart';
 import 'firebase_options.dart';
 
 AppEnvironment curEnv = AppEnvironment.production;
@@ -80,7 +82,7 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  Future<bool?> _isSignedInFuture = apiClient.isStoredTokenValid();
+  Future<User?> _isSignedInFuture = apiClient.isStoredTokenValid();
 
   @override
   Widget build(BuildContext context) {
@@ -98,13 +100,14 @@ class _LandingPageState extends State<LandingPage> {
             ),
           ),
           Center(
-            child: FutureBuilder<bool?>(
+            child: FutureBuilder<User?>(
               future: _isSignedInFuture,
-              builder: (BuildContext context, AsyncSnapshot<bool?> snapshot) {
+              builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting ||
                     snapshot.hasData && snapshot.data == null) {
                   return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
+                  print(snapshot.error);
                   return Center(
                     child: SizedBox(
                       width: 300,
@@ -121,14 +124,24 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                     ),
                   );
-                } else if (snapshot.hasData && snapshot.data == true) {
+                } else if (snapshot.hasData && snapshot.data != null) {
                   Future.delayed(Duration.zero, () {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
+                        builder: (context) {
+                          if (snapshot.data?.firstName == null ||
+                              snapshot.data!.firstName!.isEmpty ||
+                              snapshot.data?.lastName == null ||
+                              snapshot.data!.lastName!.isEmpty) {
+                            return UpdateUserNameScreen(user: snapshot.data!);
+                          } else {
+                            return const HomeScreen();
+                          }
+                        },
                       ),
                     );
                   });
+
                   return const SizedBox.shrink();
                 } else {
                   return Column(
@@ -143,7 +156,7 @@ class _LandingPageState extends State<LandingPage> {
                         Buttons.google,
                         onPressed: () {
                           handleGoogleSignIn(_googleSignIn, apiClient,
-                              (bool? signedIn) {
+                              (User? signedIn) {
                             setState(() {
                               _isSignedInFuture = Future.value(signedIn);
                             });
@@ -160,7 +173,7 @@ class _LandingPageState extends State<LandingPage> {
                             iconAlignment: IconAlignment.left,
                             style: SignInWithAppleButtonStyle.whiteOutlined,
                             onPressed: () {
-                              handleAppleSignIn(apiClient, (bool? signedIn) {
+                              handleAppleSignIn(apiClient, (User? signedIn) {
                                 setState(() {
                                   _isSignedInFuture = Future.value(signedIn);
                                 });
@@ -172,7 +185,7 @@ class _LandingPageState extends State<LandingPage> {
                         const SizedBox(height: 32),
                         ElevatedButton(
                           onPressed: () {
-                            handleLocalSignIn(apiClient, (bool? signedIn) {
+                            handleLocalSignIn(apiClient, (User? signedIn) {
                               setState(() {
                                 _isSignedInFuture = Future.value(signedIn);
                               });

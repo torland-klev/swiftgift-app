@@ -157,12 +157,13 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
 
   Widget _buildOtpPage() {
     return Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 16),
+        padding: const EdgeInsets.only(left: 30, right: 30, top: 0, bottom: 16),
         child: Center(
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Text('Enter one-time code sent to your email',
-              style: Theme.of(context).textTheme.bodyLarge),
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center),
           const SizedBox(height: 40),
           OtpTextField(
               numberOfFields: 6,

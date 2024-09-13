@@ -2,10 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../api_client.dart';
+import '../data/user.dart';
 
 Future<void> handleAppleSignIn(
   ApiClient client,
-  void Function(bool? signedIn) signedInCallback,
+  void Function(User? signedIn) signedInCallback,
 ) async {
   try {
     signedInCallback(null);
@@ -15,12 +16,12 @@ Future<void> handleAppleSignIn(
         AppleIDAuthorizationScopes.fullName,
       ],
     );
-    await client.loginApple(credential);
-    signedInCallback(true);
+
+    signedInCallback(await client.loginApple(credential));
   } catch (error) {
     if (kDebugMode) {
       print(error);
     }
-    signedInCallback(false);
+    signedInCallback(null);
   }
 }

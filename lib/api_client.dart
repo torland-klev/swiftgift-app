@@ -50,7 +50,7 @@ class ApiClient {
     _headers['Authorization'] = 'Bearer $token';
   }
 
-  loginLocal() async {
+  Future<User> loginLocal() async {
     if (curEnv != AppEnvironment.local) {
       throw Exception('Function not supported for env $curEnv');
     }
@@ -60,9 +60,10 @@ class ApiClient {
       throw Exception(
           'Unable to find user with token ${env('LOCAL_ACCESS_TOKEN')}');
     }
+    return res;
   }
 
-  Future<Response> loginGoogle(GoogleSignInAccount? account) async {
+  Future<User> loginGoogle(GoogleSignInAccount? account) async {
     if (account == null) {
       throw const HttpException('Unable to sign in google account');
     }
@@ -80,7 +81,7 @@ class ApiClient {
         print(auth.accessToken);
       }
     }
-    return res;
+    return User.fromJson(json.decode(res.body));
   }
 
   Future<List<T>> _fetch<T>(String endpoint, FromJson<T> fromJson) async {
@@ -91,7 +92,7 @@ class ApiClient {
     if (res.statusCode != 200) {
       throw const HttpException('Unable to fetch');
     }
-    var content = json.decode(res.body);
+    var content = json.decode(utf8.decode(res.bodyBytes));
     if (content is Iterable) {
       return Future.wait(
           content.map((item) => _fromJsonHandler(fromJson, item)));
@@ -109,6 +110,8 @@ class ApiClient {
         List<User> members = await groupMembers(id);
         return Group.fromJson(groupJson, members);
       });
+
+  Future<List<User>> getUsers() async => _fetch<User>('users', User.fromJson);
 
   Future<List<User>> getUser(String userId) async =>
       _fetch<User>('users/$userId', User.fromJson);
@@ -219,7 +222,7 @@ class ApiClient {
     }
   }
 
-  Future<Response> loginApple(AuthorizationCredentialAppleID credential) async {
+  Future<User?> loginApple(AuthorizationCredentialAppleID credential) async {
     if (kDebugMode) {
       print(credential);
     }
@@ -231,7 +234,7 @@ class ApiClient {
     }
     _storeToken(credential.authorizationCode);
 
-    return res;
+    return User.fromJson(json.decode(res.body));
   }
 
   Future<List<Wish>> wishesForGroup(String groupId) async =>
@@ -244,19 +247,20 @@ class ApiClient {
   Future<User?> loggedInUser() async =>
       (await _fetch<User>('me', User.fromJson)).firstOrNull;
 
-  Future<bool> isStoredTokenValid() async {
+  Future<User?> isStoredTokenValid() async {
     try {
       String? token = await getSharedPrefToken();
       if (token != null) {
         _storeToken(token);
       }
-      return (await loggedInUser()) != null;
+      var user = await loggedInUser();
+      return user;
     } catch (e) {
       if (kDebugMode) {
         print(e);
       }
     }
-    return false;
+    return null;
   }
 
   Future<int> loginEmail(String email) async {
@@ -270,12 +274,22 @@ class ApiClient {
     Uri uri = Uri.parse('$_baseUrl/app/login/email');
     Response res = await http.post(uri,
         headers: _headers, body: jsonEncode({'email': email, 'code': otp}));
-    Map<String, dynamic> body = jsonDecode(res.body);
-    String? token = body['session']['token'];
-    if (token != null) {
-      _storeToken(token);
+    if (res.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(res.body);
+      String? token = body['session']['token'];
+      if (token != null) {
+        _storeToken(token);
+      }
     }
     return res.statusCode;
+  }
+
+  Future<User> updateUser({String? firstName, String? lastName}) async {
+    Uri uri = Uri.parse('$_baseUrl/me');
+    var res = await http.put(uri,
+        headers: _headers,
+        body: jsonEncode({'firstName': firstName, 'lastName': lastName}));
+    return User.fromJson(json.decode(res.body));
   }
 }
 
