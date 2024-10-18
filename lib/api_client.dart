@@ -90,7 +90,7 @@ class ApiClient {
         .get(uri, headers: _headers)
         .timeout(const Duration(seconds: 4));
     if (res.statusCode != 200) {
-      throw const HttpException('Unable to fetch');
+      throw HttpException('Unable to fetch from uri ${uri.toString()}');
     }
     var content = json.decode(utf8.decode(res.bodyBytes));
     if (content is Iterable) {

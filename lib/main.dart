@@ -51,11 +51,13 @@ GoogleSignIn _googleSignIn = _initialGoogleSignIn();
 logout(BuildContext context) async {
   await _googleSignIn.signOut();
   await apiClient.signOut();
-  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(
-      builder: (context) => const GavelisteApp(),
-    ),
-  );
+  if (context.mounted) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const GavelisteApp(),
+      ),
+    );
+  }
 }
 
 class GavelisteApp extends StatelessWidget {
@@ -107,7 +109,9 @@ class _LandingPageState extends State<LandingPage> {
                     snapshot.hasData && snapshot.data == null) {
                   return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
-                  print(snapshot.error);
+                  if (kDebugMode) {
+                    print(snapshot.error);
+                  }
                   return Center(
                     child: SizedBox(
                       width: 300,
@@ -126,20 +130,22 @@ class _LandingPageState extends State<LandingPage> {
                   );
                 } else if (snapshot.hasData && snapshot.data != null) {
                   Future.delayed(Duration.zero, () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          if (snapshot.data?.firstName == null ||
-                              snapshot.data!.firstName!.isEmpty ||
-                              snapshot.data?.lastName == null ||
-                              snapshot.data!.lastName!.isEmpty) {
-                            return UpdateUserNameScreen(user: snapshot.data!);
-                          } else {
-                            return const HomeScreen();
-                          }
-                        },
-                      ),
-                    );
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) {
+                            if (snapshot.data?.firstName == null ||
+                                snapshot.data!.firstName!.isEmpty ||
+                                snapshot.data?.lastName == null ||
+                                snapshot.data!.lastName!.isEmpty) {
+                              return UpdateUserNameScreen(user: snapshot.data!);
+                            } else {
+                              return const HomeScreen();
+                            }
+                          },
+                        ),
+                      );
+                    }
                   });
 
                   return const SizedBox.shrink();

@@ -78,7 +78,7 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
             _selectedGroup?.id,
             _titleController.text)
         .then((wish) {
-      Navigator.pop(context, wish);
+      if (mounted) Navigator.pop(context, wish);
     });
   }
 

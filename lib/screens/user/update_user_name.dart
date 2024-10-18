@@ -83,11 +83,13 @@ class _UpdateUserNameScreenState extends State<UpdateUserNameScreen> {
 
   void _submitName(String firstName, String lastName) {
     apiClient.updateUser(firstName: firstName, lastName: lastName).then((user) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LandingPage(),
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LandingPage(),
+          ),
+        );
+      }
     });
   }
 

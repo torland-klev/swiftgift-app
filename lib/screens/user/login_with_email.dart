@@ -80,7 +80,7 @@ class _LoginWithEmailScreenState extends State<LoginWithEmailScreen> {
   void _handleOtpEntered(String otp) {
     _loader();
     apiClient.loginOtp(_emailController.text, otp).then((statusCode) {
-      if (statusCode == 200) {
+      if (statusCode == 200 && mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const LandingPage(),
