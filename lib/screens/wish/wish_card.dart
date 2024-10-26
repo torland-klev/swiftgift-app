@@ -52,19 +52,15 @@ class WishCard extends StatelessWidget {
                 return const SizedBox.shrink();
               } else if (snapshot.hasData && snapshot.data != null) {
                 return Container(
-                  width: 130,
+                  width: 120,
                   constraints:
                       const BoxConstraints(maxHeight: 110, minHeight: 80),
                   decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(10.0),
-                        bottomRight: Radius.circular(10.0)),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Image.file(
-                    snapshot.data!,
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.file(snapshot.data!,
+                      fit: BoxFit.cover, alignment: Alignment.centerRight),
                 );
               } else {
                 return const SizedBox.shrink();

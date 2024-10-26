@@ -122,16 +122,23 @@ class ApiClient {
         return Wish.fromJson(wishJson, user.first);
       });
 
+  Future<List<Wish>> wishesByUser(
+          {required String userId, String? groupId}) async =>
+      _fetch<Wish>(
+          groupId != null
+              ? 'groups/$groupId/members/$userId/wishes'
+              : 'users/$userId/wishes', (wishJson) async {
+        String id = wishJson['userId'];
+        List<User> user = await getUser(id);
+        return Wish.fromJson(wishJson, user.first);
+      });
+
   Future<List<Wish>> wishesByLoggedOnUser() async {
     User? res = await loggedInUser();
     if (res == null) {
       return List.empty();
     } else {
-      return _fetch<Wish>('users/${res.id}/wishes', (wishJson) async {
-        String id = wishJson['userId'];
-        List<User> user = await getUser(id);
-        return Wish.fromJson(wishJson, user.first);
-      });
+      return wishesByUser(userId: res.id);
     }
   }
 

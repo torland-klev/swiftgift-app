@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:swiftgift_app/screens/wish/filters.dart';
 import 'package:swiftgift_app/util.dart';
 
 import '../../data/group.dart';
 import '../../main.dart';
+import '../users/users_grid.dart';
 
 class GroupDetailsScreen extends StatelessWidget {
   final Group group;
@@ -75,28 +77,10 @@ class GroupDetailsScreen extends StatelessWidget {
                 ],
               )
             ]),
-            const SizedBox(height: 16),
-            const Text(
-              'Members:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 40),
             Expanded(
-              child: ListView.builder(
-                itemCount: group.members.length,
-                itemBuilder: (context, index) {
-                  final member = group.members[index];
-                  return member.email != null
-                      ? ListTile(
-                          title: Text('${member.firstName} ${member.lastName}'),
-                          subtitle: Text(member.email!),
-                        )
-                      : ListTile(
-                          title:
-                              Text('${member.firstName} ${member.lastName}'));
-                },
-              ),
-            ),
+                child: UsersGrid(
+                    users: group.members, filters: WishFilters(group: group)))
           ],
         ),
       ),

@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:swiftgift_app/data/group.dart';
 import 'package:swiftgift_app/main.dart';
+import 'package:swiftgift_app/screens/wish/wishes_list.dart';
 import 'package:swiftgift_app/util.dart';
 
 import '../../data/wish.dart';
-import 'wish_card.dart';
-
-class _Filters {
-  Occasion? occasion;
-  WishVisibility? visibility;
-  Group? group;
-
-  _Filters(this.occasion, this.visibility, this.group);
-}
+import 'filters.dart';
 
 class MyWishesScreen extends StatefulWidget {
   const MyWishesScreen({super.key});
@@ -30,8 +23,8 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
     super.initState();
   }
 
-  Widget _buildFilterBar(BuildContext context, _Filters? filters,
-      Function(_Filters newFilters) onChange) {
+  Widget _buildFilterBar(BuildContext context, WishFilters? filters,
+      Function(WishFilters newFilters) onChange) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -42,10 +35,16 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
             Occasion.values,
             filters?.occasion,
             (occasion) {
-              onChange(_Filters(occasion, filters?.visibility, filters?.group));
+              onChange(WishFilters(
+                  occasion: occasion,
+                  visibility: filters?.visibility,
+                  group: filters?.group));
             },
             () {
-              onChange(_Filters(null, filters?.visibility, filters?.group));
+              onChange(WishFilters(
+                  occasion: null,
+                  visibility: filters?.visibility,
+                  group: filters?.group));
             },
             (occasion) {
               return occasion.name.toCapitalized();
@@ -54,9 +53,15 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
           _buildFilterItem<WishVisibility>(
               context, 'Visibility', WishVisibility.values, filters?.visibility,
               (visibility) {
-            onChange(_Filters(filters?.occasion, visibility, filters?.group));
+            onChange(WishFilters(
+                occasion: filters?.occasion,
+                visibility: visibility,
+                group: filters?.group));
           }, () {
-            onChange(_Filters(filters?.occasion, null, filters?.group));
+            onChange(WishFilters(
+                occasion: filters?.occasion,
+                visibility: null,
+                group: filters?.group));
           }, (visibility) {
             return visibility.name.toCapitalized();
           }),
@@ -71,11 +76,15 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
               } else {
                 return _buildFilterItem<Group>(
                     context, 'Group', snapshot.data!, filters?.group, (group) {
-                  onChange(
-                      _Filters(filters?.occasion, filters?.visibility, group));
+                  onChange(WishFilters(
+                      occasion: filters?.occasion,
+                      visibility: filters?.visibility,
+                      group: group));
                 }, () {
-                  onChange(
-                      _Filters(filters?.occasion, filters?.visibility, null));
+                  onChange(WishFilters(
+                      occasion: filters?.occasion,
+                      visibility: filters?.visibility,
+                      group: null));
                 }, (group) {
                   return group.name;
                 });
@@ -137,7 +146,7 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
     );
   }
 
-  _Filters? _filters;
+  WishFilters? _filters;
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +165,7 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
                 });
               })),
           Expanded(
-            flex: 5,
+            flex: 8,
             child: Center(
               child: FutureBuilder<List<Wish>>(
                 future: _filters?.group?.id == null
@@ -171,33 +180,9 @@ class _MyWishesScreenState extends State<MyWishesScreen> {
                   } else if (!snapshot.hasData) {
                     return const Text('No wishes found');
                   } else {
-                    List<Wish> combined = List.empty(growable: true);
-                    combined.addAll(snapshot.requireData);
-                    if (combined.isEmpty) {
-                      return const Text('No wishes found');
-                    }
-                    return ListView(
-                      children: combined
-                          .where((wish) => wish.status == Status.open)
-                          .where((wish) =>
-                              _filters?.occasion == null ||
-                              _filters!.occasion! == wish.occasion)
-                          .where((wish) =>
-                              _filters?.visibility == null ||
-                              _filters!.visibility! == wish.visibility)
-                          .map(
-                            (entry) => Column(children: [
-                              const Divider(),
-                              Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: WishCard(
-                                    wish: entry,
-                                  )),
-                              const Divider()
-                            ]),
-                          )
-                          .toList(),
+                    return FilteredWishList(
+                      wishes: snapshot.requireData,
+                      filters: _filters,
                     );
                   }
                 },
