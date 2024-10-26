@@ -3,12 +3,15 @@ import 'package:swiftgift_app/screens/users/user_details.dart';
 
 import '../../data/user.dart';
 import '../wish/filters.dart';
+import '../wish/wish_details.dart';
 
 class UsersGrid extends StatelessWidget {
   final List<User> users;
   final WishFilters? filters;
+  final List<WishAction> actions;
 
-  const UsersGrid({super.key, required this.users, this.filters});
+  const UsersGrid(
+      {super.key, required this.users, this.filters, this.actions = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +34,7 @@ class UsersGrid extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => UserDetailsPage(
-                  user: user,
-                  filters: filters,
-                ),
+                    user: user, filters: filters, actions: actions),
               ),
             );
           },

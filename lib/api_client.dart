@@ -293,10 +293,16 @@ class ApiClient {
 
   Future<User> updateUser({String? firstName, String? lastName}) async {
     Uri uri = Uri.parse('$_baseUrl/me');
-    var res = await http.put(uri,
+    Response res = await http.put(uri,
         headers: _headers,
         body: jsonEncode({'firstName': firstName, 'lastName': lastName}));
     return User.fromJson(json.decode(res.body));
+  }
+
+  Future<GroupRole> getLoggedInUsersRoleForGroup(String groupId) async {
+    Uri uri = Uri.parse('$_baseUrl/groups/$groupId/role');
+    Response res = await http.get(uri, headers: _headers);
+    return GroupRole.values.byName(res.body.toLowerCase());
   }
 }
 

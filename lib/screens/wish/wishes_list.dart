@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:swiftgift_app/screens/wish/filters.dart';
+import 'package:swiftgift_app/screens/wish/wish_details.dart';
 
 import '../../data/wish.dart';
 import 'wish_card.dart';
@@ -7,12 +8,10 @@ import 'wish_card.dart';
 class FilteredWishList extends StatelessWidget {
   final List<Wish> wishes;
   final WishFilters? filters;
+  final List<WishAction> actions;
 
-  const FilteredWishList({
-    super.key,
-    required this.wishes,
-    this.filters,
-  });
+  const FilteredWishList(
+      {super.key, required this.wishes, this.filters, this.actions = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +35,7 @@ class FilteredWishList extends StatelessWidget {
                 const Divider(),
                 Padding(
                   padding: const EdgeInsets.only(left: 4, right: 0),
-                  child: WishCard(
-                    wish: entry,
-                  ),
+                  child: WishCard(wish: entry, actions: actions),
                 ),
                 const Divider(),
               ],

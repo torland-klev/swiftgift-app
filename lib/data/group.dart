@@ -6,6 +6,8 @@ enum GroupVisibility {
   completed,
 }
 
+enum GroupRole { owner, member, moderator, admin }
+
 class Group {
   final String id;
   final String name;

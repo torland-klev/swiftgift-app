@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:swiftgift_app/screens/wish/filters.dart';
+import 'package:swiftgift_app/screens/wish/wish_details.dart';
 import 'package:swiftgift_app/util.dart';
 
 import '../../data/group.dart';
+import '../../data/wish.dart';
 import '../../main.dart';
 import '../users/users_grid.dart';
 
@@ -21,6 +23,10 @@ class GroupDetailsScreen extends StatelessWidget {
     Share.share(
         'Vil du bli med i gavelista ${group.name}? Følg linken her:\n\n$url',
         subject: "SwiftGift Invitasjon");
+  }
+
+  void _removeWishFromGroup(Wish wish) {
+    // TODO
   }
 
   @override
@@ -78,9 +84,33 @@ class GroupDetailsScreen extends StatelessWidget {
               )
             ]),
             const SizedBox(height: 40),
-            Expanded(
-                child: UsersGrid(
-                    users: group.members, filters: WishFilters(group: group)))
+            FutureBuilder<GroupRole>(
+              future: apiClient.getLoggedInUsersRoleForGroup(group.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else {
+                  final role = snapshot.data;
+                  final isAuthorized = role != GroupRole.member;
+
+                  return Expanded(
+                    child: UsersGrid(
+                      users: group.members,
+                      filters: WishFilters(group: group),
+                      actions: isAuthorized
+                          ? [
+                              WishAction(
+                                  label: "Remove",
+                                  function: _removeWishFromGroup)
+                            ]
+                          : [],
+                    ),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
