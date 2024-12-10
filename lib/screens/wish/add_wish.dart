@@ -10,7 +10,10 @@ import '../../data/group.dart';
 import '../../data/wish.dart';
 
 class AddWishesScreen extends StatefulWidget {
-  const AddWishesScreen({super.key});
+  final Wish? wishToEdit;
+  final File? wishImage;
+
+  const AddWishesScreen({super.key, this.wishToEdit, this.wishImage});
 
   @override
   State<AddWishesScreen> createState() => _AddWishesScreenState();
@@ -38,6 +41,13 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _titleFocusNode.requestFocus();
     });
+    if (widget.wishToEdit != null) {
+      _titleController.text = widget.wishToEdit!.title;
+      _descriptionController.text = widget.wishToEdit!.description ?? "";
+      _selectedOccasion = widget.wishToEdit!.occasion;
+      _isPrivate = widget.wishToEdit!.visibility == WishVisibility.private;
+      _selectedImage = widget.wishImage;
+    }
   }
 
   @override
@@ -65,21 +75,40 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
         ? await apiClient.uploadImage(_selectedImage!)
         : null;
 
-    apiClient
-        .postWish(
-            _selectedOccasion ?? Occasion.none,
-            _isPrivate
-                ? _selectedGroup == null
-                    ? WishVisibility.private
-                    : WishVisibility.group
-                : WishVisibility.public,
-            imageUrl,
-            _descriptionController.text,
-            _selectedGroup?.id,
-            _titleController.text)
-        .then((wish) {
-      if (mounted) Navigator.pop(context, wish);
-    });
+    if (widget.wishToEdit == null) {
+      apiClient
+          .postWish(
+              _selectedOccasion ?? Occasion.none,
+              _isPrivate
+                  ? _selectedGroup == null
+                      ? WishVisibility.private
+                      : WishVisibility.group
+                  : WishVisibility.public,
+              imageUrl,
+              _descriptionController.text,
+              _selectedGroup?.id,
+              _titleController.text)
+          .then((wish) {
+        if (mounted) Navigator.pop(context, wish);
+      });
+    } else {
+      apiClient
+          .patchWish(
+              widget.wishToEdit!.id,
+              _selectedOccasion ?? Occasion.none,
+              _isPrivate
+                  ? _selectedGroup == null
+                      ? WishVisibility.private
+                      : WishVisibility.group
+                  : WishVisibility.public,
+              imageUrl,
+              _descriptionController.text,
+              _selectedGroup?.id,
+              _titleController.text)
+          .then((wish) {
+        if (mounted) Navigator.pop(context, wish);
+      });
+    }
   }
 
   void _goToPage(int pageIndex) {
@@ -231,6 +260,7 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.blueAccent),
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: _selectedImage != null
                     ? Image.file(_selectedImage!, fit: BoxFit.cover)
                     : const Column(
@@ -364,9 +394,16 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
   }
 
   Widget _buildGroupPage() {
-    return FutureBuilder<List<Group>>(
-      future: _groups,
-      builder: (BuildContext context, AsyncSnapshot<List<Group>> snapshot) {
+    Future<List<dynamic>> _future;
+    if (widget.wishToEdit == null) {
+      _future = _groups;
+    } else {
+      _future = Future.wait(
+          [_groups, apiClient.allGroupsByWish(widget.wishToEdit!.id)]);
+    }
+    return FutureBuilder<List<dynamic>>(
+      future: _future,
+      builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
@@ -374,6 +411,12 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No groups found'));
         } else {
+          var groups = snapshot.data![0]! as List<Group>;
+          var wishGroups = snapshot.data![1]! as List<String>;
+          if (wishGroups.isNotEmpty && _selectedGroup == null && !_isPrivate) {
+            _selectedGroup = groups
+                .firstWhere((group) => wishGroups.any((id) => id == group.id));
+          }
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -411,7 +454,7 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
                           },
                         ),
                       ),
-                      ...snapshot.data!.map((Group group) {
+                      ...groups.map((Group group) {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 8.0),
                           decoration: BoxDecoration(

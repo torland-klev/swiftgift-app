@@ -182,6 +182,38 @@ class ApiClient {
     }
   }
 
+  Future<Wish> patchWish(
+      String wishId,
+      Occasion occasion,
+      WishVisibility visibility,
+      String? imageUrl,
+      String description,
+      String? groupId,
+      String title) async {
+    Uri uri = Uri.parse('$_baseUrl/wishes/$wishId');
+
+    Response res = await http.patch(uri,
+        headers: _headers,
+        body: jsonEncode({
+          'occasion': occasion.name,
+          'status': Status.open.name,
+          'visibility': visibility.name,
+          'img': imageUrl,
+          'description': description,
+          'groupId': groupId,
+          'title': title
+        }));
+
+    if (res.statusCode == 200) {
+      // If the server returns a SUCCESS response
+      return Wish.fromJson(
+          jsonDecode(res.body), User('id', 'test', 'tester', 'test@test.com'));
+    } else {
+      // If the server returns an error response
+      throw Exception('Failed to patch wish: ${res.body}');
+    }
+  }
+
   Future<String> uploadImage(File selectedImage) async {
     Uri uri = Uri.parse('$_baseUrl/images');
     MultipartRequest request = http.MultipartRequest('POST', uri);
@@ -303,6 +335,18 @@ class ApiClient {
     Uri uri = Uri.parse('$_baseUrl/groups/$groupId/role');
     Response res = await http.get(uri, headers: _headers);
     return GroupRole.values.byName(res.body.toLowerCase());
+  }
+
+  Future<List<String>> allGroupsByWish(String? wishId) async {
+    if (wishId == null) return [];
+    Uri uri = Uri.parse('$_baseUrl/wishes/$wishId/groups');
+    Response res = await http.get(uri, headers: _headers);
+    try {
+      List<dynamic> decodedBody = json.decode(res.body);
+      return decodedBody.cast<String>();
+    } catch (exception) {
+      return [];
+    }
   }
 }
 

@@ -7,12 +7,18 @@ import 'package:swiftgift_app/util.dart';
 import '../../data/wish.dart';
 import '../../main.dart';
 
-class WishCard extends StatelessWidget {
+class WishCard extends StatefulWidget {
   final Wish wish;
   final List<WishAction> actions;
 
   const WishCard({super.key, required this.wish, this.actions = const []});
 
+  @override
+  State<WishCard> createState() => _WishCardState();
+}
+
+class _WishCardState extends State<WishCard> {
+  File? _image;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -20,8 +26,10 @@ class WishCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  WishDetailsPage(wish: wish, actions: actions),
+              builder: (context) => WishDetailsPage(
+                  wish: widget.wish,
+                  actions: widget.actions,
+                  wishImage: _image),
             ),
           );
         },
@@ -39,14 +47,14 @@ class WishCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    wish.title.toCapitalized(),
+                    widget.wish.title.toCapitalized(),
                     style: Theme.of(context).textTheme.headlineSmall,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (wish.description != null &&
-                      wish.description!.trim().isNotEmpty)
+                  if (widget.wish.description != null &&
+                      widget.wish.description!.trim().isNotEmpty)
                     Text(
-                      wish.description!.toCapitalized().trim(),
+                      widget.wish.description!.toCapitalized().trim(),
                       maxLines: 2,
                       style: const TextStyle(
                         fontSize: 16,
@@ -56,13 +64,14 @@ class WishCard extends StatelessWidget {
                 ],
               )),
               FutureBuilder<File?>(
-                future: apiClient.getImage(wish.img),
+                future: apiClient.getImage(widget.wish.img),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();
                   } else if (snapshot.hasError) {
                     return const SizedBox.shrink();
                   } else if (snapshot.hasData && snapshot.data != null) {
+                    _image = snapshot.data;
                     return Container(
                       width: 120,
                       constraints:
