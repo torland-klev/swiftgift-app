@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:swiftgift_app/util.dart';
 
@@ -14,24 +12,37 @@ class WishAction {
   WishAction({required this.label, required this.function});
 }
 
-class WishDetailsPage extends StatelessWidget {
+class WishDetailsPage extends StatefulWidget {
   final Wish wish;
-  final File? wishImage;
   final List<WishAction> actions;
+  final Function(Wish)? onWishChanged;
 
   const WishDetailsPage({
     super.key,
     required this.wish,
-    this.wishImage,
+    this.onWishChanged,
     this.actions = const [],
   });
+
+  @override
+  State<WishDetailsPage> createState() => _WishDetailsPageState();
+}
+
+class _WishDetailsPageState extends State<WishDetailsPage> {
+  late Wish _wish;
+
+  @override
+  void initState() {
+    super.initState();
+    _wish = widget.wish;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          wish.title,
+          _wish.title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -49,19 +60,19 @@ class WishDetailsPage extends StatelessWidget {
             return const Center(child: Text('Error loading user data.'));
           } else if (snapshot.hasData) {
             final loggedInUser = snapshot.data;
-            final isCreator = loggedInUser?.id == wish.createdBy.id;
+            final isCreator = loggedInUser?.id == _wish.createdBy.id;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (wishImage != null)
+                  if (_wish.wishImage != null)
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16.0),
                         child: Image.file(
-                          wishImage!,
+                          _wish.wishImage!,
                           width: MediaQuery.of(context).size.width * 0.8,
                           height: 200,
                           fit: BoxFit.cover,
@@ -70,20 +81,20 @@ class WishDetailsPage extends StatelessWidget {
                     ),
                   const SizedBox(height: 24),
                   Text(
-                    wish.title.toCapitalized(),
+                    _wish.title.toCapitalized(),
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  if (wish.description?.isNotEmpty ?? false)
+                  if (_wish.description?.isNotEmpty ?? false)
                     Text(
-                      wish.description!,
+                      _wish.description!,
                       style: const TextStyle(fontSize: 18),
                       textAlign: TextAlign.justify,
                     ),
                   const SizedBox(height: 32),
                   _buildActionButtons(context, isCreator),
                   const SizedBox(height: 24),
-                  ...actions.map(
+                  ...widget.actions.map(
                     (action) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: ElevatedButton(
@@ -95,7 +106,7 @@ class WishDetailsPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12.0),
                           ),
                         ),
-                        onPressed: () => action.function(wish),
+                        onPressed: () => action.function(_wish),
                         child: Text(
                           action.label,
                           style: const TextStyle(fontSize: 16),
@@ -129,16 +140,28 @@ class WishDetailsPage extends StatelessWidget {
             ),
             icon: const Icon(Icons.edit, color: Colors.white),
             label: const Text('Edit', style: TextStyle(fontSize: 16)),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final Wish? result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddWishesScreen(
-                    wishToEdit: wish,
-                    wishImage: wishImage,
+                  builder: (context) => AddOrEditWishScreen(
+                    wishToEdit: _wish,
                   ),
                 ),
               );
+              if (result != null) {
+                // Result can be null if edit is cancelled
+                setState(() {
+                  var image = _wish.wishImage;
+                  var groups = _wish.groupIds;
+                  _wish = result;
+                  _wish.wishImage = image;
+                  _wish.groupIds = groups;
+                  if (widget.onWishChanged != null) {
+                    widget.onWishChanged!(_wish);
+                  }
+                });
+              }
             },
           ),
           const SizedBox(height: 12),

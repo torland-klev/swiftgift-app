@@ -49,7 +49,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const AddWishesScreen(),
+                            builder: (context) => const AddOrEditWishScreen(),
                           ),
                         );
                       },
@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               MyWishesScreen(),
               AllGroupsScreen(),
-              AddWishesScreen(),
+              AddOrEditWishScreen(),
               AllUsersScreen(),
               UserProfileScreen(),
             ],

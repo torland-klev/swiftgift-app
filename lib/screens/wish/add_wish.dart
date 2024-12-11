@@ -9,17 +9,16 @@ import 'package:swiftgift_app/util.dart';
 import '../../data/group.dart';
 import '../../data/wish.dart';
 
-class AddWishesScreen extends StatefulWidget {
+class AddOrEditWishScreen extends StatefulWidget {
   final Wish? wishToEdit;
-  final File? wishImage;
 
-  const AddWishesScreen({super.key, this.wishToEdit, this.wishImage});
+  const AddOrEditWishScreen({super.key, this.wishToEdit});
 
   @override
-  State<AddWishesScreen> createState() => _AddWishesScreenState();
+  State<AddOrEditWishScreen> createState() => _AddOrEditWishScreenState();
 }
 
-class _AddWishesScreenState extends State<AddWishesScreen> {
+class _AddOrEditWishScreenState extends State<AddOrEditWishScreen> {
   final _titleFormKey = GlobalKey<FormState>();
   final _imageFormKey = GlobalKey<FormState>();
   final _descriptionFormKey = GlobalKey<FormState>();
@@ -27,6 +26,7 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
   final _descriptionController = TextEditingController();
   final _titleFocusNode = FocusNode();
   File? _selectedImage;
+  bool _hasSelectedNewImage = false;
   Occasion? _selectedOccasion;
   bool _isPrivate = false;
   Group? _selectedGroup;
@@ -46,7 +46,7 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
       _descriptionController.text = widget.wishToEdit!.description ?? "";
       _selectedOccasion = widget.wishToEdit!.occasion;
       _isPrivate = widget.wishToEdit!.visibility == WishVisibility.private;
-      _selectedImage = widget.wishImage;
+      _selectedImage = widget.wishToEdit!.wishImage;
     }
   }
 
@@ -66,12 +66,13 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
+        _hasSelectedNewImage = true;
       });
     }
   }
 
   void _submitForm() async {
-    String? imageUrl = _selectedImage != null
+    String? imageUrl = _selectedImage != null && _hasSelectedNewImage
         ? await apiClient.uploadImage(_selectedImage!)
         : null;
 
@@ -143,8 +144,8 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title:
-            Text('Add Wish', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text(widget.wishToEdit == null ? 'Add Wish' : 'Edit Wish',
+            style: Theme.of(context).textTheme.headlineMedium),
       ),
       body: Column(
         children: [
@@ -394,15 +395,11 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
   }
 
   Widget _buildGroupPage() {
-    Future<List<dynamic>> _future;
-    if (widget.wishToEdit == null) {
-      _future = _groups;
-    } else {
-      _future = Future.wait(
-          [_groups, apiClient.allGroupsByWish(widget.wishToEdit!.id)]);
-    }
     return FutureBuilder<List<dynamic>>(
-      future: _future,
+      future: widget.wishToEdit == null
+          ? _groups
+          : Future.wait(
+              [_groups, apiClient.allGroupsByWish(widget.wishToEdit!.id)]),
       builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -413,6 +410,10 @@ class _AddWishesScreenState extends State<AddWishesScreen> {
         } else {
           var groups = snapshot.data![0]! as List<Group>;
           var wishGroups = snapshot.data![1]! as List<String>;
+          if (widget.wishToEdit != null) {
+            widget.wishToEdit!.groupIds = wishGroups;
+          }
+
           if (wishGroups.isNotEmpty && _selectedGroup == null && !_isPrivate) {
             _selectedGroup = groups
                 .firstWhere((group) => wishGroups.any((id) => id == group.id));

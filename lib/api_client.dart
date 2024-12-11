@@ -160,6 +160,11 @@ class ApiClient {
       String title) async {
     Uri uri = Uri.parse('$_baseUrl/wishes');
 
+    User? user = await loggedInUser();
+    if (user == null) {
+      throw Exception("Could not determine logged on user");
+    }
+
     Response res = await http.post(uri,
         headers: _headers,
         body: jsonEncode({
@@ -174,8 +179,7 @@ class ApiClient {
 
     if (res.statusCode == 201) {
       // If the server returns a CREATED response
-      return Wish.fromJson(
-          jsonDecode(res.body), User('id', 'test', 'tester', 'test@test.com'));
+      return Wish.fromJson(jsonDecode(res.body), user);
     } else {
       // If the server returns an error response
       throw Exception('Failed to create wish: ${res.body}');
@@ -192,6 +196,11 @@ class ApiClient {
       String title) async {
     Uri uri = Uri.parse('$_baseUrl/wishes/$wishId');
 
+    User? user = await loggedInUser();
+    if (user == null) {
+      throw Exception("Could not determine logged on user");
+    }
+
     Response res = await http.patch(uri,
         headers: _headers,
         body: jsonEncode({
@@ -206,8 +215,7 @@ class ApiClient {
 
     if (res.statusCode == 200) {
       // If the server returns a SUCCESS response
-      return Wish.fromJson(
-          jsonDecode(res.body), User('id', 'test', 'tester', 'test@test.com'));
+      return Wish.fromJson(jsonDecode(res.body), user);
     } else {
       // If the server returns an error response
       throw Exception('Failed to patch wish: ${res.body}');

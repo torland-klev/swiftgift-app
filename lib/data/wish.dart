@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'user.dart';
 
 enum Occasion {
@@ -21,17 +23,18 @@ enum WishVisibility {
   group,
 }
 
-// User class using enums with lowercase values
 class Wish {
-  String id;
-  User createdBy;
-  Occasion occasion;
-  String title;
-  Status status;
-  WishVisibility visibility;
-  String? url;
-  String? description;
-  String? img;
+  final String id;
+  final User createdBy;
+  final Occasion occasion;
+  final String title;
+  final Status status;
+  final WishVisibility visibility;
+  final String? url;
+  final String? description;
+  final String? img;
+  File? wishImage; // Set when downloaded. Is only downloaded when required.
+  List<String>? groupIds; // Set when fetched. Is only fetched when required.
 
   Wish(
       {required this.id,
@@ -42,7 +45,9 @@ class Wish {
       required this.visibility,
       this.url,
       this.description,
-      this.img});
+      this.img,
+      this.wishImage,
+      this.groupIds});
 
   factory Wish.fromJson(Map<String, dynamic> json, User createdBy) {
     return Wish(
