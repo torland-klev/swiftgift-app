@@ -28,7 +28,7 @@ dependencies:
   path_provider: ^2.1.5
   sign_in_with_apple: ^6.1.4
   shared_preferences: ^2.3.3
-  flutter_otp_text_field: ^1.2.0
+  flutter_otp_text_field: ^1.4.0+2
   sign_in_with_apple_platform_interface: ^1.1.0
 
 dev_dependencies:
