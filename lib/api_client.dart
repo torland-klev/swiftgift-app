@@ -363,10 +363,8 @@ class ApiClient {
     }
   }
 
-  Future<Group> postGroup(
-      String groupName,
-      GroupVisibility visibility, [List<User>? selectedUsers]
-      ) async {
+  Future<Group> postGroup(String groupName, GroupVisibility visibility,
+      [List<User>? selectedUsers]) async {
     Uri uri = Uri.parse('$_baseUrl/groups');
 
     User? user = await loggedInUser();
@@ -383,7 +381,6 @@ class ApiClient {
         }));
 
     if (res.statusCode == 201) {
-
       var groupJson = jsonDecode(res.body);
       String id = groupJson['id'];
       List<User> members = await groupMembers(id);

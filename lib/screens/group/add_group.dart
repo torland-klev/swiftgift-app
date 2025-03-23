@@ -30,7 +30,7 @@ class _AddGroupScreenState extends State<AddGroupScreen> {
       _groupNameFocusNode.requestFocus();
     });
   }
-  
+
   @override
   void dispose() {
     _groupNameController.dispose();
@@ -42,10 +42,9 @@ class _AddGroupScreenState extends State<AddGroupScreen> {
   void _submitForm() async {
     apiClient
         .postGroup(
-      _groupNameController.text,
-      _isPrivate ? GroupVisibility.private : GroupVisibility.public,
-        _selectedUsers
-    )
+            _groupNameController.text,
+            _isPrivate ? GroupVisibility.private : GroupVisibility.public,
+            _selectedUsers)
         .then((group) {
       if (mounted) Navigator.pop(context, group);
     });
@@ -189,8 +188,10 @@ class _AddGroupScreenState extends State<AddGroupScreen> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No users found'));
         } else {
-          var users = snapshot.data!.where((user) => user.displayName().isNotEmpty).toList();
-          users.sort((a,b) => a.displayName().compareTo(b.displayName()));
+          var users = snapshot.data!
+              .where((user) => user.displayName().isNotEmpty)
+              .toList();
+          users.sort((a, b) => a.displayName().compareTo(b.displayName()));
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
