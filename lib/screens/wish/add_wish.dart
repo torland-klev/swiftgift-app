@@ -370,7 +370,7 @@ class _AddOrEditWishScreenState extends State<AddOrEditWishScreen> {
                         child: ListTile(
                           title: Text(occasion.name.toCapitalized()),
                           tileColor: _selectedOccasion == occasion
-                              ?Colors.blue.withValues(alpha: 0.1)
+                              ? Colors.blue.withValues(alpha: 0.1)
                               : null,
                           onTap: () {
                             setState(() {
@@ -441,8 +441,9 @@ class _AddOrEditWishScreenState extends State<AddOrEditWishScreen> {
                         ),
                         child: ListTile(
                           title: const Text("Only for me"),
-                          tileColor:
-                              _isPrivate ? Colors.blue.withValues(alpha: 0.1) : null,
+                          tileColor: _isPrivate
+                              ? Colors.blue.withValues(alpha: 0.1)
+                              : null,
                           onTap: () {
                             setState(() {
                               if (!_isPrivate) {
