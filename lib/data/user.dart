@@ -23,4 +23,8 @@ class User {
       'email': email,
     };
   }
+
+  String displayName() {
+    return "${firstName ?? ""} ${lastName ?? ""}";
+  }
 }

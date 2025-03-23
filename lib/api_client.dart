@@ -113,6 +113,12 @@ class ApiClient {
 
   Future<List<User>> getUsers() async => _fetch<User>('users', User.fromJson);
 
+  Future<List<User>> getOtherUsers() async {
+    var users = await getUsers();
+    var curUser = await loggedInUser();
+    return users.where((u) => u.id != curUser?.id).toList();
+  }
+
   Future<List<User>> getUser(String userId) async =>
       _fetch<User>('users/$userId', User.fromJson);
 
@@ -354,6 +360,36 @@ class ApiClient {
       return decodedBody.cast<String>();
     } catch (exception) {
       return [];
+    }
+  }
+
+  Future<Group> postGroup(
+      String groupName,
+      GroupVisibility visibility, [List<User>? selectedUsers]
+      ) async {
+    Uri uri = Uri.parse('$_baseUrl/groups');
+
+    User? user = await loggedInUser();
+    if (user == null) {
+      throw Exception("Could not determine logged on user");
+    }
+
+    Response res = await http.post(uri,
+        headers: _headers,
+        body: jsonEncode({
+          'name': groupName,
+          'visibility': visibility.name,
+          'members': selectedUsers?.map((user) => user.id).toList()
+        }));
+
+    if (res.statusCode == 201) {
+
+      var groupJson = jsonDecode(res.body);
+      String id = groupJson['id'];
+      List<User> members = await groupMembers(id);
+      return Group.fromJson(groupJson, members);
+    } else {
+      throw Exception('Failed to create group: ${res.body}');
     }
   }
 }
