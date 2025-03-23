@@ -1,0 +1,2 @@
+/Users/klev/repos/swiftgift-app/android/app/.cxx/Debug/6e3g2i5i/x86/CMakeFiles/edit_cache.dir
+/Users/klev/repos/swiftgift-app/android/app/.cxx/Debug/6e3g2i5i/x86/CMakeFiles/rebuild_cache.dir

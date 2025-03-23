@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/klev/fvm/versions/stable/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/klev/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/klev/repos/swiftgift-app/android/app/.cxx/Debug/6e3g2i5i/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/klev/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/klev/repos/swiftgift-app/android/app/.cxx/Debug/6e3g2i5i/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
