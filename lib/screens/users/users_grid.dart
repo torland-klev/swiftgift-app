@@ -18,10 +18,10 @@ class UsersGrid extends StatelessWidget {
     return GridView.builder(
       itemCount: users.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 2-wide grid
-        mainAxisSpacing: 10.0, // Spacing between rows
-        crossAxisSpacing: 10.0, // Spacing between columns
-        childAspectRatio: 3 / 4, // Adjust the aspect ratio of each item
+        crossAxisCount: 2,
+        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 10.0,
+        childAspectRatio: 3 / 4,
       ),
       itemBuilder: (context, index) {
         final user = users[index];

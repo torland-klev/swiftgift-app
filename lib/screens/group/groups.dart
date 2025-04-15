@@ -6,9 +6,11 @@ import 'group.dart';
 
 class _GroupCard extends StatefulWidget {
   final Group group;
+  final VoidCallback onRefresh;
 
   const _GroupCard({
     required this.group,
+    required this.onRefresh,
   });
 
   @override
@@ -29,14 +31,15 @@ class _GroupCardState extends State<_GroupCard> {
             ? const Color.fromRGBO(146, 186, 255, 100)
             : theme.cardColor,
         child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => GroupDetailsScreen(group: widget.group),
-              ),
-            );
-          },
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupDetailsScreen(group: widget.group),
+                ),
+              );
+              widget.onRefresh();
+            },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListTile(
@@ -69,7 +72,19 @@ class AllGroupsScreen extends StatefulWidget {
 }
 
 class _AllGroupsScreenState extends State<AllGroupsScreen> {
-  final Future<List<Group>> _groups = apiClient.groups();
+  late Future<List<Group>> _groups;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroups();
+  }
+
+  void _loadGroups() {
+    _groups = apiClient.groups();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,6 +113,7 @@ class _AllGroupsScreenState extends State<AllGroupsScreen> {
                             .map(
                               (entry) => _GroupCard(
                                 group: entry.value,
+                                onRefresh: _loadGroups,
                               ),
                             )
                             .toList(),

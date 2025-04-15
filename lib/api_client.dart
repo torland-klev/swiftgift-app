@@ -101,15 +101,17 @@ class ApiClient {
     }
   }
 
+  Future<Group> _jsonToGroup(Map<String, dynamic> groupJson) async {
+  String id = groupJson['id'];
+  List<User> members = await groupMembers(id);
+  return Group.fromJson(groupJson, members);
+}
+
   Future<List<User>> groupMembers(String groupId) async =>
       _fetch<User>('groups/$groupId/members', User.fromJson);
 
   Future<List<Group>> groups() async =>
-      _fetch<Group>('groups', (groupJson) async {
-        String id = groupJson['id'];
-        List<User> members = await groupMembers(id);
-        return Group.fromJson(groupJson, members);
-      });
+      _fetch<Group>('groups', _jsonToGroup);
 
   Future<List<User>> getUsers() async => _fetch<User>('users', User.fromJson);
 
@@ -345,10 +347,24 @@ class ApiClient {
     return User.fromJson(json.decode(res.body));
   }
 
-  Future<GroupRole> getLoggedInUsersRoleForGroup(String groupId) async {
+  Future<GroupRole?> getLoggedInUsersRoleForGroup(String groupId) async {
     Uri uri = Uri.parse('$_baseUrl/groups/$groupId/role');
     Response res = await http.get(uri, headers: _headers);
-    return GroupRole.values.byName(res.body.toLowerCase());
+    if (res.statusCode == 200 && res.body.isNotEmpty) {
+      return GroupRole.values.byName(res.body.toLowerCase());
+    } else {
+      if (await isLoggedInUserMemberOfGroup(groupId)) {
+        throw Exception("User is member of group $groupId, but no role was found.");
+      } else {
+        return Future.value(null);
+      }
+    }
+  }
+
+  Future<bool> isLoggedInUserMemberOfGroup(String groupId) async {
+    Uri uri = Uri.parse('$_baseUrl/groups/$groupId/isMember');
+    Response res = await http.get(uri, headers: _headers);
+    return bool.parse(res.body, caseSensitive: false);
   }
 
   Future<List<String>> allGroupsByWish(String? wishId) async {
@@ -387,6 +403,21 @@ class ApiClient {
       return Group.fromJson(groupJson, members);
     } else {
       throw Exception('Failed to create group: ${res.body}');
+    }
+  }
+
+  Future<Group> addUserToGroup(String groupId) async {
+    Uri uri = Uri.parse('$_baseUrl/groups/$groupId/members/join');
+    await http.post(uri, headers: _headers);
+    return (await getGroup(groupId))!;
+  }
+
+  Future<Group?> getGroup(String groupId) async {
+    var groups = await _fetch('groups/$groupId', _jsonToGroup);
+    if (groups.isNotEmpty) {
+      return groups[0];
+    } else {
+      return null;
     }
   }
 }
